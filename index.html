@@ -1830,6 +1830,20 @@
     const auth = firebase.auth();
     const database = firebase.database();
 
+    // Monitor de conexão em tempo real: avisa quando o sincronismo cai/volta.
+    // Uma queda de socket faz as mensagens pararem de chegar até reconectar.
+    let __wasConnected = true;
+    database.ref('.info/connected').on('value', s => {
+      const connected = s.val() === true;
+      if (!connected && __wasConnected) {
+        __wasConnected = false;
+        if (typeof showToast === 'function') showToast('Conexão em tempo real perdida. Tentando reconectar...', 'error');
+      } else if (connected && !__wasConnected) {
+        __wasConnected = true;
+        if (typeof showToast === 'function') showToast('Conexão restaurada. Mensagens sincronizadas.', 'success');
+      }
+    });
+
     // ============================================================
     // 2. CONSTANTES E ESTADO
     // ============================================================
@@ -1958,6 +1972,9 @@
             currentProviderId = user.uid;
             document.getElementById('btnEditProfile').style.display = 'inline-flex';
             document.getElementById('btnEditProfileMobile').style.display = 'flex';
+            // Inicia a escuta de mensagens em tempo real ASSIM QUE o profissional loga,
+            // sem depender de abrir a aba "Oferecer". Garante recebimento global.
+            listenProviderMessages();
           } else {
             document.getElementById('btnEditProfile').style.display = 'none';
             document.getElementById('btnEditProfileMobile').style.display = 'none';
@@ -2195,7 +2212,10 @@
       if (professionalsListenerRef) professionalsListenerRef.off();
       const ref = database.ref('professionals');
       professionalsListenerRef = ref;
-      ref.on('value', snap => renderProfessionalsGrid(snap.val() || {}));
+      ref.on('value',
+        snap => renderProfessionalsGrid(snap.val() || {}),
+        err => console.error('Falha ao escutar profissionais:', err)
+      );
     }
 
     function renderProfessionalsGrid(data) {
@@ -2229,7 +2249,13 @@
       if (myServicesListenerRef) myServicesListenerRef.off();
       const ref = database.ref('services').orderByChild('professionalId').equalTo(currentProviderId);
       myServicesListenerRef = ref;
-      ref.on('value', snap => renderMyServicesGrid(snap.val() || {}));
+      ref.on('value',
+        snap => renderMyServicesGrid(snap.val() || {}),
+        err => {
+          console.error('Falha ao escutar serviços:', err);
+          if (err.code === 'PERMISSION_DENIED') showToast('Sem permissão para ler serviços (regras do Firebase).', 'error');
+        }
+      );
     }
 
     function renderMyServicesGrid(services) {
@@ -2261,7 +2287,21 @@
       if (providerMessagesListenerRef) providerMessagesListenerRef.off();
       const ref = database.ref('messages').orderByChild('toProfessionalId').equalTo(currentProviderId);
       providerMessagesListenerRef = ref;
-      ref.on('value', snap => renderProviderMessagesList(snap.val() || {}));
+      ref.on('value',
+        snap => renderProviderMessagesList(snap.val() || {}),
+        err => {
+          // Sem este callback, falhas de permissão/índice ficavam invisíveis
+          // e as mensagens simplesmente "não chegavam" sem aviso.
+          console.error('Falha ao escutar mensagens do profissional:', err);
+          if (err.code === 'PERMISSION_DENIED') {
+            showToast('Sem permissão para ler mensagens. Verifique as regras do Firebase.', 'error');
+          } else {
+            showToast('Falha de sincronismo nas mensagens. Reconectando...', 'error');
+            // Re-tenta a conexão após breve intervalo (queda de rede/índice)
+            setTimeout(() => { if (currentProviderId) listenProviderMessages(); }, 4000);
+          }
+        }
+      );
     }
 
     function renderProviderMessagesList(msgs) {
@@ -2269,20 +2309,27 @@
       const empty = document.getElementById('emptyMessages');
       const arr = Object.entries(msgs).map(([id, m]) => ({ id, ...m }));
       const groups = {};
-      arr.forEach(m => { const k = m.conversationKey; if (!groups[k]) groups[k] = [];
-        groups[k].push(m); });
+      arr.forEach(m => {
+        const k = m && m.conversationKey;
+        if (!k) return;               // ignora registros sem chave em vez de quebrar a lista
+        if (!groups[k]) groups[k] = [];
+        groups[k].push(m);
+      });
       const keys = Object.keys(groups);
       if (!keys.length) { list.innerHTML = '';
         empty.style.display = 'block'; return; }
       empty.style.display = 'none';
       list.innerHTML = keys.map(k => {
-        const conv = groups[k].sort((a, b) => b.timestamp - a.timestamp);
-        const last = conv[0];
+        // Ordena de forma resiliente a timestamps ausentes/pendentes (ServerValue)
+        const conv = groups[k].slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const last = conv[0] || {};
+        const text = String(last.text ?? '');
+        const ts = Number(last.timestamp) || Date.now();
         const unread = conv.filter(m => !m.read && m.from === 'client').length;
         return `<div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.05);" onclick="openProviderChatView('${k}')">
-                <strong>💬 ${last.clientName||'Cliente'}</strong>
-                <span style="float:right;font-size:0.7rem;color:var(--text2);">${new Date(last.timestamp).toLocaleString()}</span>
-                <p style="font-size:0.85rem;">${last.text.substring(0,60)}${last.text.length>60?'...':''}</p>
+                <strong>💬 ${esc(last.clientName || 'Cliente')}</strong>
+                <span style="float:right;font-size:0.7rem;color:var(--text2);">${new Date(ts).toLocaleString()}</span>
+                <p style="font-size:0.85rem;">${esc(text.substring(0,60))}${text.length>60?'...':''}</p>
                 ${unread ? `<span class="badge" style="background:var(--primary);color:#fff;">${unread} nova(s)</span>` : ''}
               </div>`;
       }).join('');
@@ -2363,16 +2410,24 @@
       const ref = database.ref('messages').orderByChild('conversationKey').equalTo(convKey);
       chatListenerRef = ref;
       ref.on('value', snap => {
-        const msgs = Object.values(snap.val() || {}).sort((a, b) => a.timestamp - b.timestamp);
+        const msgs = Object.values(snap.val() || {}).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
         const container = document.getElementById('chatMessagesPro');
         if (!container) return;
         container.innerHTML = msgs.map(m => {
           const sent = m.from === 'client';
           const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit',
             minute: '2-digit' }) : '';
-          return `<div class="chat-msg ${sent?'sent':'received'}">${m.text}<span class="msg-time">${time}</span></div>`;
+          return `<div class="chat-msg ${sent?'sent':'received'}">${esc(m.text ?? '')}<span class="msg-time">${time}</span></div>`;
         }).join('');
         container.scrollTop = container.scrollHeight;
+      }, err => {
+        console.error('Falha ao escutar o chat:', err);
+        if (err.code === 'PERMISSION_DENIED') {
+          showToast('Sem permissão para ler o chat. Verifique as regras do Firebase.', 'error');
+        } else {
+          showToast('Falha de sincronismo no chat. Reconectando...', 'error');
+          setTimeout(() => { if (currentChatProId) startChatListener(currentChatProId); }, 4000);
+        }
       });
     }
 
@@ -2482,7 +2537,7 @@
         Object.entries(msgsObj).forEach(([id, m]) => { if (!m.read && m.from === 'client') updates[`messages/${id}/read`] =
             true; });
         if (Object.keys(updates).length) await database.ref().update(updates);
-        const msgs = Object.values(msgsObj).sort((a, b) => a.timestamp - b.timestamp);
+        const msgs = Object.values(msgsObj).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
         const content = document.getElementById('profileContent');
         content.innerHTML = `
               <h3>💬 Chat</h3>
@@ -2491,7 +2546,7 @@
                   ${msgs.map(m => {
                     const rec = m.from === 'client';
                     const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : '';
-                    return `<div class="chat-msg ${rec?'received':'sent'}">${m.text}<span class="msg-time">${time}</span></div>`;
+                    return `<div class="chat-msg ${rec?'received':'sent'}">${esc(m.text ?? '')}<span class="msg-time">${time}</span></div>`;
                   }).join('')}
                 </div>
                 <div class="chat-input-area">
@@ -2504,16 +2559,23 @@
         const ref = database.ref('messages').orderByChild('conversationKey').equalTo(convKey);
         chatListenerRef = ref;
         ref.on('value', snap => {
-          const updated = Object.values(snap.val() || {}).sort((a, b) => a.timestamp - b.timestamp);
+          const updated = Object.values(snap.val() || {}).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
           const container = document.getElementById('providerChatView');
           if (!container) return;
           container.innerHTML = updated.map(m => {
             const rec = m.from === 'client';
             const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit',
               minute: '2-digit' }) : '';
-            return `<div class="chat-msg ${rec?'received':'sent'}">${m.text}<span class="msg-time">${time}</span></div>`;
+            return `<div class="chat-msg ${rec?'received':'sent'}">${esc(m.text ?? '')}<span class="msg-time">${time}</span></div>`;
           }).join('');
           container.scrollTop = container.scrollHeight;
+        }, err => {
+          console.error('Falha ao escutar o chat do profissional:', err);
+          if (err.code === 'PERMISSION_DENIED') {
+            showToast('Sem permissão para ler o chat. Verifique as regras do Firebase.', 'error');
+          } else {
+            showToast('Falha de sincronismo no chat. Reconectando...', 'error');
+          }
         });
       } catch (e) { showToast('Erro ao abrir chat.', 'error');
         console.error(e); }
