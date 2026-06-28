@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -206,6 +207,14 @@
       background: var(--primary-light);
       transform: translateY(-2px);
     }
+    .nav-links .btn-outline-sm {
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+    .nav-links .btn-outline-sm:hover {
+      background: var(--primary);
+      color: #fff;
+    }
 
     /* ── BOTÕES GERAIS ── */
     button,
@@ -294,6 +303,95 @@
       padding: 0.5rem 1.2rem;
       font-size: 0.8rem;
       min-height: 40px;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ── TELA DE AUTENTICAÇÃO ── */
+    #panelAuth {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      padding: 2rem;
+      background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%);
+    }
+    .auth-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--gray-200);
+    }
+    .auth-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .auth-card .sub {
+      text-align: center;
+      color: var(--gray-600);
+      font-size: 0.95rem;
+      margin-bottom: 1.8rem;
+    }
+    .auth-card .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .auth-card .form-group label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text2);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .auth-card .form-group input {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      background: var(--ivory);
+      transition: var(--transition);
+    }
+    .auth-card .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(110, 42, 82, 0.1);
+    }
+    .auth-card .btn {
+      width: 100%;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    .auth-card .toggle-link {
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 0.9rem;
+      color: var(--gray-600);
+    }
+    .auth-card .toggle-link span {
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .auth-card .toggle-link span:hover {
+      color: var(--secondary);
+      text-decoration: underline;
+    }
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 0.5rem;
+      min-height: 1.5rem;
     }
 
     /* ── HERO ── */
@@ -1157,11 +1255,12 @@
           <span class="logo-sub">marketplace de casamentos</span>
         </div>
       </div>
-      <nav class="nav-links">
-        <button class="btn btn-primary-sm" onclick="switchToContract()">🔍 Buscar</button>
-        <button class="btn" onclick="switchToProvide()">💼 Oferecer</button>
+      <nav class="nav-links" id="navLinks">
+        <button class="btn btn-primary-sm" onclick="switchToContract()" id="btnNavContract" style="display:none;">🔍 Buscar</button>
+        <button class="btn" onclick="switchToProvide()" id="btnNavProvide" style="display:none;">💼 Oferecer</button>
         <button class="btn" onclick="editProfile()" id="btnEditProfile" style="display:none;">✏️ Perfil</button>
-        <button class="btn" onclick="goHome()">🏠</button>
+        <button class="btn btn-outline-sm" onclick="logout()" id="btnLogout" style="display:none;">Sair</button>
+        <button class="btn" onclick="showAuth()" id="btnLogin">Entrar</button>
       </nav>
     </div>
   </header>
@@ -1169,8 +1268,34 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <main class="main-container" id="mainContent">
+    <!-- ─── TELA DE AUTENTICAÇÃO ─── -->
+    <section class="panel active" id="panelAuth">
+      <div class="auth-card">
+        <h2 id="authTitle">Bem-vindo</h2>
+        <p class="sub" id="authSub">Faça login para acessar sua conta</p>
+        <form id="authForm" onsubmit="handleAuth(event)">
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="authEmail" placeholder="seu@email.com" required />
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="authPassword" placeholder="••••••••" required minlength="6" />
+          </div>
+          <div class="auth-error" id="authError"></div>
+          <button type="submit" class="btn btn-primary" id="authSubmitBtn">Entrar</button>
+        </form>
+        <div class="toggle-link">
+          <span id="authToggleText">Não tem conta? <span onclick="toggleAuthMode()">Cadastre-se</span></span>
+        </div>
+        <div style="margin-top:1rem; text-align:center; font-size:0.8rem; color:var(--gray-500);">
+          Ao continuar você concorda com nossos Termos de Uso.
+        </div>
+      </div>
+    </section>
+
     <!-- ─── PAINEL HOME (Landing Page) ─── -->
-    <section class="panel active" id="panelHome">
+    <section class="panel" id="panelHome">
       <!-- HERO -->
       <div class="hero">
         <svg class="hero-rings" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1383,7 +1508,7 @@
   <!-- ─── SCRIPTS ─── -->
   <script>
     // ================================================================
-    // 1. FIREBASE CONFIG (mesma do arquivo fornecido)
+    // 1. FIREBASE CONFIG (mantida)
     // ================================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCjVxdq2AGRh68Qa_YdbkMEdIRL7E06N8M",
@@ -1417,28 +1542,145 @@
     let myServicesListenerRef = null;
     let providerMessagesListenerRef = null;
 
+    let isLoginMode = true; // true=login, false=registro
+
     // ================================================================
-    // 3. AUTENTICAÇÃO ANÔNIMA
+    // 3. AUTENTICAÇÃO
     // ================================================================
-    async function signInAnonymously() {
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      document.getElementById('authTitle').textContent = isLoginMode ? 'Bem-vindo' : 'Criar conta';
+      document.getElementById('authSub').textContent = isLoginMode ? 'Faça login para acessar sua conta' :
+        'Cadastre-se para começar a usar o Enlace';
+      document.getElementById('authSubmitBtn').textContent = isLoginMode ? 'Entrar' : 'Cadastrar';
+      document.getElementById('authToggleText').innerHTML = isLoginMode ?
+        'Não tem conta? <span onclick="toggleAuthMode()">Cadastre-se</span>' :
+        'Já tem conta? <span onclick="toggleAuthMode()">Faça login</span>';
+      document.getElementById('authError').textContent = '';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const errorEl = document.getElementById('authError');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Carregando...';
+      errorEl.textContent = '';
+
       try {
-        const result = await auth.signInAnonymously();
-        currentUser = result.user;
-        console.log('Conectado:', currentUser.uid);
-      } catch (e) {
-        showToast('Erro de conexão com o Firebase.', 'error');
-        console.error(e);
+        if (isLoginMode) {
+          await auth.signInWithEmailAndPassword(email, password);
+          showToast('Login efetuado com sucesso!', 'success');
+        } else {
+          await auth.createUserWithEmailAndPassword(email, password);
+          showToast('Conta criada! Faça login para continuar.', 'success');
+          // Após criar, faz logout para forçar login
+          await auth.signOut();
+          toggleAuthMode(); // volta para login
+          document.getElementById('authEmail').value = email;
+          document.getElementById('authPassword').value = '';
+          errorEl.textContent = 'Conta criada! Agora faça login.';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Entrar';
+          return;
+        }
+        // Se chegou aqui, login bem-sucedido
+        submitBtn.disabled = false;
+        submitBtn.textContent = isLoginMode ? 'Entrar' : 'Cadastrar';
+        // O listener de auth cuidará do resto
+      } catch (err) {
+        let msg = err.message;
+        if (err.code === 'auth/user-not-found') msg = 'Usuário não encontrado.';
+        else if (err.code === 'auth/wrong-password') msg = 'Senha incorreta.';
+        else if (err.code === 'auth/email-already-in-use') msg = 'E-mail já cadastrado.';
+        else if (err.code === 'auth/invalid-email') msg = 'E-mail inválido.';
+        else if (err.code === 'auth/weak-password') msg = 'Senha deve ter pelo menos 6 caracteres.';
+        errorEl.textContent = msg;
+        showToast(msg, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = isLoginMode ? 'Entrar' : 'Cadastrar';
       }
     }
 
     // ================================================================
-    // 4. NAVEGAÇÃO
+    // 4. GERENCIAMENTO DE SESSÃO
+    // ================================================================
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('btnLogin').style.display = 'none';
+        document.getElementById('btnLogout').style.display = 'inline-flex';
+        document.getElementById('btnNavContract').style.display = 'inline-flex';
+        document.getElementById('btnNavProvide').style.display = 'inline-flex';
+
+        // Carregar perfil profissional se existir
+        try {
+          const snap = await database.ref('providerProfiles/' + user.uid).once('value');
+          if (snap.exists()) {
+            currentProviderData = snap.val();
+            currentProviderData.uid = user.uid;
+            currentProviderId = user.uid;
+            document.getElementById('btnEditProfile').style.display = 'inline-flex';
+          } else {
+            document.getElementById('btnEditProfile').style.display = 'none';
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar perfil:', e);
+        }
+
+        // Esconder tela de auth e mostrar home
+        document.getElementById('panelAuth').classList.remove('active');
+        document.getElementById('panelAuth').style.display = 'none';
+        if (!document.getElementById('panelHome').classList.contains('active')) {
+          goHome();
+        } else {
+          // Se já estiver na home, apenas recarrega dados
+          loadHomeData();
+        }
+      } else {
+        currentUser = null;
+        currentProviderData = null;
+        currentProviderId = null;
+        document.getElementById('btnLogin').style.display = 'inline-flex';
+        document.getElementById('btnLogout').style.display = 'none';
+        document.getElementById('btnNavContract').style.display = 'none';
+        document.getElementById('btnNavProvide').style.display = 'none';
+        document.getElementById('btnEditProfile').style.display = 'none';
+        // Mostrar tela de auth
+        document.getElementById('panelAuth').style.display = 'flex';
+        document.getElementById('panelAuth').classList.add('active');
+        // Esconder outros painéis
+        document.querySelectorAll('.panel:not(#panelAuth)').forEach(p => p.classList.remove('active'));
+        cleanupAllListeners();
+      }
+    });
+
+    async function logout() {
+      await auth.signOut();
+      showToast('Deslogado com sucesso.', 'success');
+    }
+
+    function showAuth() {
+      // Se já estiver na tela de auth, não faz nada
+      if (document.getElementById('panelAuth').style.display !== 'none') return;
+      // Força saída para mostrar login
+      auth.signOut();
+    }
+
+    // ================================================================
+    // 5. NAVEGAÇÃO
     // ================================================================
     function goHome() {
+      if (!currentUser) {
+        showAuth();
+        return;
+      }
       hideAllPanels();
       document.getElementById('panelHome').classList.add('active');
       cleanupAllListeners();
-      // Recarregar anúncios e destaques (já são ouvidos)
+      loadHomeData();
     }
 
     function hideAllPanels() {
@@ -1446,6 +1688,7 @@
     }
 
     async function switchToContract() {
+      if (!currentUser) { showAuth(); return; }
       hideAllPanels();
       document.getElementById('panelContract').classList.add('active');
       currentUserType = 'contract';
@@ -1455,10 +1698,10 @@
     }
 
     async function switchToProvide() {
+      if (!currentUser) { showAuth(); return; }
       hideAllPanels();
       document.getElementById('panelProvide').classList.add('active');
       currentUserType = 'provide';
-      document.getElementById('btnEditProfile').style.display = 'inline-flex';
 
       if (!currentProviderData) {
         try {
@@ -1467,6 +1710,7 @@
             currentProviderData = snap.val();
             currentProviderData.uid = currentUser.uid;
             currentProviderId = currentUser.uid;
+            document.getElementById('btnEditProfile').style.display = 'inline-flex';
           } else {
             document.getElementById('modalProviderProfile').style.display = 'flex';
             return;
@@ -1484,7 +1728,15 @@
     }
 
     // ================================================================
-    // 5. PERFIL DO FORNECEDOR
+    // 6. DADOS DA HOME (anúncios e destaques)
+    // ================================================================
+    function loadHomeData() {
+      // Os listeners já estão ativos para ads e profAds, mas podemos reativar se necessário
+      // Como são globais, já estão sendo ouvidos desde o init.
+    }
+
+    // ================================================================
+    // 7. PERFIL DO FORNECEDOR
     // ================================================================
     function populateCategorySelects() {
       ['profileCategory', 'svcCategory'].forEach(id => {
@@ -1527,6 +1779,7 @@
         showToast('Perfil salvo com sucesso! ✨', 'success');
         document.getElementById('providerNameDisplay').textContent = name;
         document.getElementById('providerCatDisplay').textContent = category;
+        document.getElementById('btnEditProfile').style.display = 'inline-flex';
         if (currentUserType === 'provide') {
           cleanupAllListeners();
           listenMyServices();
@@ -1555,7 +1808,7 @@
     }
 
     // ================================================================
-    // 6. NOME DO CLIENTE
+    // 8. NOME DO CLIENTE (localStorage)
     // ================================================================
     function getClientName() { return localStorage.getItem('eventconnect_clientName') || ''; }
 
@@ -1571,7 +1824,7 @@
     }
 
     // ================================================================
-    // 7. LISTENERS DE DADOS
+    // 9. LISTENERS DE DADOS
     // ================================================================
     function cleanupAllListeners() {
       cleanupChatListener();
@@ -1687,7 +1940,7 @@
     }
 
     // ================================================================
-    // 8. FILTROS
+    // 10. FILTROS
     // ================================================================
     function renderFilterChips() {
       document.getElementById('filterChips').innerHTML = CATEGORIES_WITH_ALL.map(cat =>
@@ -1703,9 +1956,10 @@
     }
 
     // ================================================================
-    // 9. PERFIL DO PROFISSIONAL + CHAT
+    // 11. PERFIL DO PROFISSIONAL + CHAT
     // ================================================================
     async function openProfessionalProfile(proUid) {
+      if (!currentUser) { showAuth(); return; }
       if (!getClientName()) { currentChatProId = proUid;
         document.getElementById('modalClientName').style.display = 'flex'; return; }
       try {
@@ -1861,7 +2115,7 @@
     }
 
     // ================================================================
-    // 10. CRUD DE SERVIÇOS
+    // 12. CRUD DE SERVIÇOS
     // ================================================================
     function openProvideForm() {
       if (!currentProviderData) { showToast('Crie seu perfil primeiro!', 'error'); return; }
@@ -1950,7 +2204,7 @@
     }
 
     // ================================================================
-    // 11. UTILITÁRIOS
+    // 13. UTILITÁRIOS
     // ================================================================
     function closeModal(id) {
       document.getElementById(id).style.display = 'none';
@@ -1985,12 +2239,12 @@
     }
 
     // ================================================================
-    // 12. ANÚNCIOS E FORNECEDORES EM DESTAQUE (do arquivo original)
+    // 14. ANÚNCIOS E FORNECEDORES EM DESTAQUE (do arquivo original)
     // ================================================================
     function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
         "'": '&#39;' } [c])); }
 
-    // Anúncios globais
+    // Anúncios globais (ficam ativos mesmo sem login, mas só aparecem na home)
     database.ref('ads').on('value', snap => {
       const ads = Object.values(snap.val() || {});
       const now = new Date();
@@ -2039,22 +2293,11 @@
     });
 
     // ================================================================
-    // 13. INICIALIZAÇÃO
+    // 15. INICIALIZAÇÃO
     // ================================================================
-    (async function init() {
-      await signInAnonymously();
-      if (!currentUser) return;
-      try {
-        const snap = await database.ref('providerProfiles/' + currentUser.uid).once('value');
-        if (snap.exists()) {
-          currentProviderData = snap.val();
-          currentProviderData.uid = currentUser.uid;
-          currentProviderId = currentUser.uid;
-          document.getElementById('btnEditProfile').style.display = 'inline-flex';
-        }
-      } catch (e) { console.warn('Erro ao carregar perfil inicial:', e); }
-      goHome();
-    })();
+    // O onAuthStateChanged já cuida de mostrar/esconder telas.
+    // Preencher selects de categorias
+    document.addEventListener('DOMContentLoaded', populateCategorySelects);
   </script>
 
 </body>
