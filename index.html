@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>Enlace · Marketplace de Casamentos</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6E2A52" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <style>
+    /* ── RESET & BASE ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6E2A52;
+      --primary-light: #8A3D63;
+      --primary-dark: #45203A;
+      --secondary: #B5658A;
+      --gold: #C2A35E;
+      --gold-soft: #E4D2A8;
+      --blush: #F4E6EC;
+      --ivory: #FBF7F3;
+      --ink: #2C2230;
+      --gray-600: #7A6E76;
+      --gray-500: #9A8E96;
+      --gray-200: #E7DCE2;
+      --white: #FFFFFF;
+      --shadow-lg: 0 24px 48px rgba(44, 34, 48, 0.14);
+      --shadow-xl: 0 40px 64px rgba(44, 34, 48, 0.18);
+      --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --radius: 24px;
+      --radius-sm: 14px;
+      --bg: #fdf2f8;
+      --surface: #ffffff;
+      --surface2: #fce7f3;
+      --text: #4a1942;
+      --text2: #6b4b64;
+      --danger: #ef4444;
+      --success: #10b981;
+      --font: 'Inter', sans-serif;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── PÉTALAS ANIMADAS ── */
+    .petals-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .petal {
+      position: absolute;
+      top: -20px;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at 30% 30%, #fcc, #f8a5a5);
+      border-radius: 50% 0 50% 50%;
+      opacity: 0.4;
+      transform-origin: center;
+      animation: fall linear infinite;
+    }
+    .petal:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; width: 16px; height: 16px; background: #f8d5d5; }
+    .petal:nth-child(2) { left: 25%; animation-duration: 15s; animation-delay: 2s; width: 22px; height: 22px; background: #f5c2c2; }
+    .petal:nth-child(3) { left: 40%; animation-duration: 10s; animation-delay: 4s; width: 14px; height: 14px; background: #fce4e4; }
+    .petal:nth-child(4) { left: 55%; animation-duration: 18s; animation-delay: 1s; width: 18px; height: 18px; background: #f8d0d0; }
+    .petal:nth-child(5) { left: 70%; animation-duration: 13s; animation-delay: 3s; width: 20px; height: 20px; background: #fbe0e0; }
+    .petal:nth-child(6) { left: 85%; animation-duration: 16s; animation-delay: 5s; width: 15px; height: 15px; background: #fcdbdb; }
+
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.4; }
+      100% { transform: translateY(110vh) rotate(720deg) scale(0.8); opacity: 0; }
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 0.8rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(239, 231, 235, 0.6);
+      box-shadow: 0 2px 20px rgba(44, 34, 48, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-family: 'Cormorant Garamond', serif;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .logo:hover .logo-icon {
+      transform: scale(1.05) rotate(-4deg);
+    }
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--primary), var(--gold));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 700;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 6px 20px rgba(110, 42, 82, 0.2);
+      transition: var(--transition);
+    }
+    .logo-text {
+      background: linear-gradient(135deg, var(--primary), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 0.6rem;
+      color: var(--gray-500);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .header-badge {
+      font-size: 0.7rem;
+      color: var(--gray-600);
+      font-weight: 500;
+      background: var(--gray-200);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--gray-200);
+    }
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-links .btn {
+      padding: 0.5rem 1.2rem;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid transparent;
+    }
+    .nav-links .btn:hover {
+      background: var(--blush);
+      border-color: var(--gray-200);
+    }
+    .nav-links .btn-primary-sm {
+      background: var(--primary);
+      color: white;
+    }
+    .nav-links .btn-primary-sm:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    /* ── BOTÕES GERAIS ── */
+    button,
+    .btn {
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      min-height: 54px;
+      text-decoration: none;
+      line-height: 1;
+    }
+    .btn-cta {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--white);
+      box-shadow: 0 12px 30px rgba(110, 42, 82, 0.35);
+    }
+    .btn-cta:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 40px rgba(110, 42, 82, 0.45);
+    }
+    .btn-light {
+      background: var(--white);
+      color: var(--primary);
+      box-shadow: 0 8px 24px rgba(44, 34, 48, 0.12);
+    }
+    .btn-light:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(44, 34, 48, 0.18);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--gold-soft);
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(110, 42, 82, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(110, 42, 82, 0.4);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--secondary), #c47a9e);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(181, 101, 138, 0.3);
+    }
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    .btn-back {
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: var(--text2);
+      min-height: 40px;
+      padding: 0.5rem 1.2rem;
+    }
+    .btn-back:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .btn-sm {
+      padding: 0.5rem 1.2rem;
+      font-size: 0.8rem;
+      min-height: 40px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem 6rem;
+      color: var(--white);
+      isolation: isolate;
+      background: linear-gradient(145deg, #7d2f5b 0%, var(--primary-dark) 70%, #37142c 100%);
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1600&q=80') center/cover no-repeat;
+      opacity: 0.3;
+      z-index: 0;
+      mix-blend-mode: overlay;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(44, 34, 48, 0.3) 0%, rgba(44, 34, 48, 0.7) 100%);
+      z-index: 1;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .hero-rings {
+      position: absolute;
+      z-index: 1;
+      top: 5%;
+      right: 5%;
+      width: 140px;
+      height: 140px;
+      opacity: 0.6;
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,
+      100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .hero .eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+      font-size: 3.6rem;
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+    .hero h1 span {
+      color: var(--gold-soft);
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 540px;
+      margin: 0 auto 2rem;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    /* ── SECTION TITLES ── */
+    .section-eyebrow {
+      text-align: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .section-title {
+      text-align: center;
+      font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 2.5rem;
+      line-height: 1.1;
+    }
+    .section-title span {
+      background: linear-gradient(135deg, var(--primary), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── CHOOSER CARDS ── */
+    .chooser-section {
+      max-width: 1100px;
+      margin: 3rem auto 1rem;
+      padding: 0 1.5rem;
+    }
+    .chooser-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.8rem;
+      margin-bottom: 2rem;
+    }
+    .chooser-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid var(--gray-200);
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      min-height: 140px;
+      position: relative;
+    }
+    .chooser-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--gold);
+    }
+    .chooser-card .card-img {
+      width: 140px;
+      height: 140px;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .chooser-card .card-img.client {
+      background-image: url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&h=300&fit=crop');
+    }
+    .chooser-card .card-img.professional {
+      background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop');
+    }
+    .chooser-card .card-img.admin {
+      background-image: url('https://images.unsplash.com/photo-1556761175-4b46a572b786?w=300&h=300&fit=crop');
+    }
+    .chooser-content {
+      flex: 1;
+      padding: 1rem 1.5rem 1rem 0;
+    }
+    .chooser-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      margin-bottom: 0.2rem;
+    }
+    .chooser-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+    .chooser-desc {
+      font-size: 0.93rem;
+      color: var(--gray-600);
+      line-height: 1.5;
+    }
+    .chooser-arrow {
+      font-size: 2.2rem;
+      color: var(--gold);
+      opacity: 0.4;
+      transition: var(--transition);
+      padding-right: 1.5rem;
+    }
+    .chooser-card:hover .chooser-arrow {
+      opacity: 1;
+      transform: translateX(6px);
+    }
+
+    @media (min-width: 768px) {
+      .chooser-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .chooser-card.card-admin {
+        grid-column: 1 / -1;
+      }
+      .chooser-card .card-img {
+        width: 180px;
+        height: 180px;
+      }
+      .hero h1 {
+        font-size: 4.6rem;
+      }
+    }
+    @media (max-width: 600px) {
+      .chooser-card {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 0;
+      }
+      .chooser-card .card-img {
+        width: 100%;
+        height: 160px;
+      }
+      .chooser-content {
+        padding: 1rem;
+      }
+      .chooser-arrow {
+        display: none;
+      }
+      .hero h1 {
+        font-size: 2.6rem;
+      }
+      .hero-rings {
+        width: 80px;
+        height: 80px;
+        right: 2%;
+        top: 0;
+      }
+      .section-title {
+        font-size: 2rem;
+      }
+      .header-badge {
+        display: none;
+      }
+    }
+
+    /* ── GALERIA ── */
+    .gallery-section {
+      max-width: 1200px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .gallery-grid .gallery-item {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      aspect-ratio: 1/1;
+      background-size: cover;
+      background-position: center;
+      transition: var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+    .gallery-grid .gallery-item:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-xl);
+    }
+    .gallery-grid .gallery-item::after {
+      content: '♥';
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      color: white;
+      font-size: 1.2rem;
+      opacity: 0.7;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    .gallery-grid .gallery-item:nth-child(1) {
+      background-image: url('https://images.unsplash.com/photo-1511798616182-a4d4ce8f6bc1?w=600&q=80');
+    }
+    .gallery-grid .gallery-item:nth-child(2) {
+      background-image: url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80');
+    }
+    .gallery-grid .gallery-item:nth-child(3) {
+      background-image: url('https://images.unsplash.com/photo-1513262068452-cd35e75d66d1?w=600&q=80');
+    }
+    .gallery-grid .gallery-item:nth-child(4) {
+      background-image: url('https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80');
+    }
+    .gallery-grid .gallery-item:nth-child(5) {
+      background-image: url('https://images.unsplash.com/photo-1532678465557-d63ba1bdefd0?w=600&q=80');
+    }
+    .gallery-grid .gallery-item:nth-child(6) {
+      background-image: url('https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80');
+    }
+
+    @media (min-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .gallery-grid .gallery-item:nth-child(1) {
+        grid-column: 1 / 3;
+        grid-row: 1 / 3;
+        aspect-ratio: auto;
+      }
+    }
+
+    /* ── FORNECEDORES EM DESTAQUE ── */
+    .prof-ads-section {
+      max-width: 1100px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+    .prof-ad-card {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--gray-200);
+      border-left: 5px solid var(--gold);
+      box-shadow: var(--shadow-lg);
+      transition: var(--transition);
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .prof-ad-card:hover {
+      box-shadow: var(--shadow-xl);
+      transform: translateY(-4px);
+      border-color: var(--gold);
+    }
+    .prof-ad-card .prof-img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+      border: 3px solid var(--gold-soft);
+    }
+    .prof-ad-card .prof-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .prof-ad-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.2rem;
+    }
+    .prof-ad-card p {
+      font-size: 0.93rem;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+    .prof-ad-meta {
+      font-size: 0.85rem;
+      color: var(--gray-500);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .prof-ad-card .btn-link {
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      transition: var(--transition);
+      border-bottom: 1.5px solid transparent;
+      cursor: pointer;
+    }
+    .prof-ad-card .btn-link:hover {
+      color: var(--secondary);
+      border-bottom-color: var(--gold);
+    }
+
+    /* ── ADS BANNERS ── */
+    .ads-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .ad-banner {
+      background: linear-gradient(135deg, #3a2238 0%, #241726 100%);
+      color: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      transition: var(--transition);
+      cursor: pointer;
+      border: 1px solid rgba(194, 163, 94, 0.15);
+      box-shadow: var(--shadow-lg);
+    }
+    .ad-banner:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-xl);
+    }
+    .ad-banner h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+    .ad-banner p {
+      font-size: 0.92rem;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+    .ad-label {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      font-size: 0.6rem;
+      background: rgba(194, 163, 94, 0.2);
+      color: var(--gold-soft);
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── FOOTER ── */
+    .index-footer {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      color: var(--gray-500);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--gray-200);
+      margin-top: 3rem;
+      background: var(--white);
+    }
+    .index-footer strong {
+      font-family: 'Playfair Display', serif;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    /* ── PAINÉIS INTERNOS (EventConnect) ── */
+    .panel {
+      display: none;
+      animation: fadeInUp 0.4s ease;
+      padding: 2rem 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .panel.active {
+      display: block;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .panel-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      flex: 1;
+      min-width: 200px;
+      font-family: 'Playfair Display', serif;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+      color: var(--text2);
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(110, 42, 82, 0.2);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(110, 42, 82, 0.15);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 500px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .image-upload-area {
+      border: 2px dashed rgba(167, 139, 250, 0.4);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(167, 139, 250, 0.05);
+    }
+    .image-upload-area:hover {
+      border-color: var(--secondary);
+      background: rgba(167, 139, 250, 0.1);
+    }
+    .image-upload-area img {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 8px;
+      margin-top: 10px;
+      object-fit: cover;
+    }
+    .image-upload-area input[type="file"] {
+      display: none;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .professional-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid rgba(110, 42, 82, 0.1);
+      box-shadow: 0 4px 20px rgba(110, 42, 82, 0.08);
+    }
+    .professional-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(110, 42, 82, 0.15);
+    }
+    .professional-card .card-img {
+      height: 160px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      overflow: hidden;
+    }
+    .professional-card .card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .professional-card .card-body {
+      padding: 16px;
+    }
+    .professional-card .card-body h4 {
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+    .professional-card .card-body .cat {
+      font-size: 0.8rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .professional-card .card-body .desc {
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-top: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-verified {
+      background: rgba(16, 185, 129, 0.2);
+      color: #059669;
+    }
+    .stars {
+      color: #f59e0b;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .chip {
+      padding: 8px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(110, 42, 82, 0.3);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: var(--transition);
+      background: var(--surface);
+      color: var(--text2);
+      font-family: var(--font);
+    }
+    .chip:hover,
+    .chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .chat-container {
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+      max-height: 65vh;
+      border: 1px solid rgba(110, 42, 82, 0.15);
+      box-shadow: var(--shadow-lg);
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #faf5ff;
+    }
+    .chat-msg {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      word-break: break-word;
+      animation: fadeInUp 0.25s ease;
+    }
+    .chat-msg.sent {
+      align-self: flex-end;
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 6px;
+    }
+    .chat-msg.received {
+      align-self: flex-start;
+      background: #f3e8ff;
+      color: var(--text);
+      border-bottom-left-radius: 6px;
+    }
+    .chat-msg .msg-time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: 4px;
+      display: block;
+      text-align: right;
+    }
+    .chat-input-area {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-top: 1px solid rgba(110, 42, 82, 0.1);
+    }
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(110, 42, 82, 0.2);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--font);
+    }
+    .chat-input-area input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text2);
+    }
+    .empty-state .icon {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    /* ── MODAIS ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(110, 42, 82, 0.3);
+      position: relative;
+      animation: scaleIn 0.3s ease;
+    }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover {
+      background: rgba(110, 42, 82, 0.1);
+      color: var(--primary);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      animation: slideInRight 0.4s ease, fadeOut 0.4s ease 2.6s forwards;
+      box-shadow: var(--shadow-lg);
+    }
+    .toast.success {
+      background: #059669;
+      border-left: 4px solid var(--success);
+    }
+    .toast.error {
+      background: #b91c1c;
+      border-left: 4px solid var(--danger);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(80px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── RESPONSIVE GERAL ── */
+    @media (max-width: 768px) {
+      .nav-links .btn {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.7rem;
+      }
+      .panel {
+        padding: 1rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PÉTALAS ANIMADAS -->
+  <div class="petals-container" aria-hidden="true">
+    <div class="petal"></div>
+    <div class="petal"></div>
+    <div class="petal"></div>
+    <div class="petal"></div>
+    <div class="petal"></div>
+    <div class="petal"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="goHome()">
+        <div class="logo-icon">♥</div>
+        <div style="display:flex;flex-direction:column;gap:0.05rem">
+          <span class="logo-text">Enlace</span>
+          <span class="logo-sub">marketplace de casamentos</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <button class="btn btn-primary-sm" onclick="switchToContract()">🔍 Buscar</button>
+        <button class="btn" onclick="switchToProvide()">💼 Oferecer</button>
+        <button class="btn" onclick="editProfile()" id="btnEditProfile" style="display:none;">✏️ Perfil</button>
+        <button class="btn" onclick="goHome()">🏠</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <main class="main-container" id="mainContent">
+    <!-- ─── PAINEL HOME (Landing Page) ─── -->
+    <section class="panel active" id="panelHome">
+      <!-- HERO -->
+      <div class="hero">
+        <svg class="hero-rings" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="49" cy="62" r="25" stroke="#E4D2A8" stroke-width="3" opacity="0.7" />
+          <circle cx="73" cy="62" r="25" stroke="#C2A35E" stroke-width="3" />
+          <circle cx="61" cy="62" r="40" stroke="#E4D2A8" stroke-width="1.5" opacity="0.4" />
+        </svg>
+        <div class="hero-inner">
+          <div class="eyebrow">Marketplace de casamentos</div>
+          <h1>Seu dia <span>perfeito</span><br />começa aqui</h1>
+          <p>Fotógrafos, buffets, decoração, música e muito mais — os melhores fornecedores para o seu grande dia, reunidos em um só lugar.</p>
+          <div class="hero-actions">
+            <button class="btn-light" onclick="switchToContract()">Começar agora &rarr;</button>
+            <button class="btn-outline" onclick="switchToContract()">Explorar fornecedores</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADS TOP -->
+      <div class="ads-strip" id="adsTopIndex" style="margin-top:2rem"></div>
+
+      <!-- CHOOSER SECTION -->
+      <div class="chooser-section" id="chooserSection">
+        <div class="section-eyebrow">Por onde quer começar?</div>
+        <div class="section-title">Escolha o seu <span>acesso</span></div>
+        <div class="chooser-grid">
+          <div class="chooser-card card-client" onclick="switchToContract()">
+            <div class="card-img client"></div>
+            <div class="chooser-content">
+              <div class="chooser-label">Para noivos</div>
+              <div class="chooser-title">Encontrar fornecedores</div>
+              <div class="chooser-desc">Descubra e contrate os profissionais do seu casamento, envie pedidos de orçamento e acompanhe tudo em um só lugar.</div>
+            </div>
+            <div class="chooser-arrow">&rsaquo;</div>
+          </div>
+          <div class="chooser-card card-professional" onclick="switchToProvide()">
+            <div class="card-img professional"></div>
+            <div class="chooser-content">
+              <div class="chooser-label">Para fornecedores</div>
+              <div class="chooser-title">Divulgar meus serviços</div>
+              <div class="chooser-desc">Monte sua vitrine, mostre seu portfólio e receba pedidos de orçamento de noivos da sua região.</div>
+            </div>
+            <div class="chooser-arrow">&rsaquo;</div>
+          </div>
+          <div class="chooser-card card-admin" onclick="switchToContract()">
+            <div class="card-img admin"></div>
+            <div class="chooser-content">
+              <div class="chooser-label">Administração</div>
+              <div class="chooser-title">Painel do gestor</div>
+              <div class="chooser-desc">Gerencie usuários, publique anúncios e acompanhe os números da plataforma Enlace.</div>
+            </div>
+            <div class="chooser-arrow">&rsaquo;</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALERIA -->
+      <section class="gallery-section">
+        <div class="section-eyebrow">Inspire-se</div>
+        <div class="section-title">Casamentos dos <span>sonhos</span></div>
+        <div class="gallery-grid">
+          <div class="gallery-item"></div>
+          <div class="gallery-item"></div>
+          <div class="gallery-item"></div>
+          <div class="gallery-item"></div>
+          <div class="gallery-item"></div>
+          <div class="gallery-item"></div>
+        </div>
+      </section>
+
+      <!-- FORNECEDORES EM DESTAQUE -->
+      <div class="prof-ads-section" id="profAdsIndex"></div>
+
+      <!-- ADS BOTTOM -->
+      <div class="ads-strip" id="adsBottomIndex"></div>
+
+      <!-- FOOTER -->
+      <div class="index-footer">
+        <strong>Enlace</strong> &copy; 2025 &middot; Marketplace de casamentos, sincronizado em tempo real
+      </div>
+    </section>
+
+    <!-- ─── PAINEL CONTRATAR ─── -->
+    <section class="panel" id="panelContract">
+      <div class="panel-header">
+        <button class="btn btn-back" onclick="goHome()">← Voltar</button>
+        <h2>🔍 Encontrar Profissionais</h2>
+      </div>
+      <div class="filter-chips" id="filterChips"></div>
+      <div class="cards-grid" id="professionalsGrid"></div>
+      <div class="empty-state" id="emptyStateContract" style="display:none;">
+        <span class="icon">📭</span>
+        <p>Nenhum profissional cadastrado ainda.</p>
+      </div>
+    </section>
+
+    <!-- ─── PAINEL FORNECER ─── -->
+    <section class="panel" id="panelProvide">
+      <div class="panel-header">
+        <button class="btn btn-back" onclick="goHome()">← Voltar</button>
+        <h2>💼 Meu Painel de Serviços</h2>
+        <button class="btn btn-secondary btn-sm" onclick="openProvideForm()">+ Novo Serviço</button>
+      </div>
+      <div style="margin-bottom:20px;">
+        <p style="color:var(--text2);">👤 <strong id="providerNameDisplay"></strong> — <span id="providerCatDisplay"></span></p>
+      </div>
+      <div class="cards-grid" id="myServicesGrid"></div>
+      <div class="empty-state" id="emptyStateProvide" style="display:none;">
+        <span class="icon">📦</span>
+        <p>Você ainda não cadastrou serviços.</p>
+      </div>
+      <div class="section-title">📬 Mensagens Recebidas</div>
+      <div id="providerMessagesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="empty-state" id="emptyMessages" style="display:none;">
+        <span class="icon">💬</span>
+        <p>Nenhuma mensagem recebida ainda.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ─── MODAIS ─── -->
+
+  <!-- MODAL: Perfil do Fornecedor -->
+  <div class="modal-overlay" id="modalProviderProfile" style="display:none;">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modalProviderProfile')">✕</button>
+      <h3 style="margin-bottom:18px;">👋 Complete seu perfil profissional</h3>
+      <form id="formProviderProfile" onsubmit="saveProviderProfile(event)">
+        <div class="form-group">
+          <label>Nome completo *</label>
+          <input type="text" id="profileName" required placeholder="Ex: DJ André Electro" />
+        </div>
+        <div class="form-group">
+          <label>Categoria principal *</label>
+          <select id="profileCategory" required><option value="">Selecione...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Descrição do seu trabalho</label>
+          <textarea id="profileDesc" rows="2" placeholder="Conte um pouco sobre sua experiência..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cidade/Estado</label>
+            <input type="text" id="profileLocation" placeholder="Ex: São Paulo - SP" />
+          </div>
+          <div class="form-group">
+            <label>Telefone/WhatsApp</label>
+            <input type="text" id="profilePhone" placeholder="(11) 99999-0000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>E-mail de contato</label>
+          <input type="email" id="profileEmail" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label>URL da foto de perfil (opcional)</label>
+          <input type="url" id="profileAvatar" placeholder="https://..." />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Salvar Perfil</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Cadastro de Serviço -->
+  <div class="modal-overlay" id="modalServiceOverlay" style="display:none;">
+    <div class="modal" id="modalService">
+      <button class="modal-close" onclick="closeModal('modalServiceOverlay')">✕</button>
+      <h3 style="margin-bottom:18px;">📋 Cadastrar Serviço</h3>
+      <form id="formService" onsubmit="saveService(event)">
+        <div class="form-group"><label>Nome do Serviço *</label><input type="text" id="svcName" required placeholder="Ex: DJ para Casamento Premium" /></div>
+        <div class="form-group"><label>Categoria</label><select id="svcCategory"></select></div>
+        <div class="form-group"><label>Descrição</label><textarea id="svcDesc" rows="3" placeholder="Detalhes do serviço..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Preço (R$) *</label><input type="number" id="svcPrice" required step="0.01" min="0" /></div>
+          <div class="form-group"><label>URL da Imagem (opcional)</label><input type="url" id="svcImageUrl" placeholder="https://..." /></div>
+        </div>
+        <div class="form-group">
+          <label>Ou envie uma imagem (até 2MB)</label>
+          <div class="image-upload-area" onclick="document.getElementById('svcImageFile').click()">
+            <span id="uploadPlaceholder">📷 Clique para escolher uma foto</span>
+            <img id="svcImagePreview" style="display:none;" alt="Preview" />
+            <input type="file" id="svcImageFile" accept="image/*" onchange="previewServiceImage(event)" />
+          </div>
+        </div>
+        <input type="hidden" id="svcEditId" />
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Salvar Serviço</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Nome do Cliente (antes do chat) -->
+  <div class="modal-overlay" id="modalClientName" style="display:none;">
+    <div class="modal" style="max-width:400px; text-align:center;">
+      <h3>💬 Como gostaria de ser chamado?</h3>
+      <form id="formClientName" onsubmit="setClientName(event)">
+        <div class="form-group"><input type="text" id="clientNameInput" required placeholder="Seu nome ou apelido" /></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Perfil do Profissional + Chat -->
+  <div class="modal-overlay" id="modalProfileOverlay" style="display:none;">
+    <div class="modal" id="modalProfile" style="max-width:700px;">
+      <button class="modal-close" onclick="closeModal('modalProfileOverlay')">✕</button>
+      <div id="profileContent"></div>
+    </div>
+  </div>
+
+  <!-- ─── SCRIPTS ─── -->
+  <script>
+    // ================================================================
+    // 1. FIREBASE CONFIG (mesma do arquivo fornecido)
+    // ================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjVxdq2AGRh68Qa_YdbkMEdIRL7E06N8M",
+      authDomain: "imobpro-667da.firebaseapp.com",
+      databaseURL: "https://imobpro-667da-default-rtdb.firebaseio.com",
+      projectId: "imobpro-667da",
+      storageBucket: "imobpro-667da.firebasestorage.app",
+      messagingSenderId: "827299768500",
+      appId: "1:827299768500:web:5935f6ebfd863d376a8fe1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // ================================================================
+    // 2. CONSTANTES E ESTADO
+    // ================================================================
+    const CATEGORIES = ['DJ', 'Cerimonialista', 'Fotógrafo', 'Filmagem', 'Buffet', 'Decoração',
+      'Banda/Música', 'Iluminação', 'Bolo/Confeitaria', 'Open Bar', 'Outro'
+    ];
+    const CATEGORIES_WITH_ALL = ['Todos', ...CATEGORIES];
+
+    let currentUser = null;
+    let currentUserType = null;
+    let currentProviderId = null;
+    let currentProviderData = null;
+    let activeFilter = 'Todos';
+    let currentChatProId = null;
+    let chatListenerRef = null;
+    let professionalsListenerRef = null;
+    let myServicesListenerRef = null;
+    let providerMessagesListenerRef = null;
+
+    // ================================================================
+    // 3. AUTENTICAÇÃO ANÔNIMA
+    // ================================================================
+    async function signInAnonymously() {
+      try {
+        const result = await auth.signInAnonymously();
+        currentUser = result.user;
+        console.log('Conectado:', currentUser.uid);
+      } catch (e) {
+        showToast('Erro de conexão com o Firebase.', 'error');
+        console.error(e);
+      }
+    }
+
+    // ================================================================
+    // 4. NAVEGAÇÃO
+    // ================================================================
+    function goHome() {
+      hideAllPanels();
+      document.getElementById('panelHome').classList.add('active');
+      cleanupAllListeners();
+      // Recarregar anúncios e destaques (já são ouvidos)
+    }
+
+    function hideAllPanels() {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    }
+
+    async function switchToContract() {
+      hideAllPanels();
+      document.getElementById('panelContract').classList.add('active');
+      currentUserType = 'contract';
+      cleanupAllListeners();
+      renderFilterChips();
+      listenProfessionals();
+    }
+
+    async function switchToProvide() {
+      hideAllPanels();
+      document.getElementById('panelProvide').classList.add('active');
+      currentUserType = 'provide';
+      document.getElementById('btnEditProfile').style.display = 'inline-flex';
+
+      if (!currentProviderData) {
+        try {
+          const snap = await database.ref('providerProfiles/' + currentUser.uid).once('value');
+          if (snap.exists()) {
+            currentProviderData = snap.val();
+            currentProviderData.uid = currentUser.uid;
+            currentProviderId = currentUser.uid;
+          } else {
+            document.getElementById('modalProviderProfile').style.display = 'flex';
+            return;
+          }
+        } catch (e) {
+          showToast('Erro ao carregar perfil.', 'error');
+          return;
+        }
+      }
+      document.getElementById('providerNameDisplay').textContent = currentProviderData.name || '—';
+      document.getElementById('providerCatDisplay').textContent = currentProviderData.category || '—';
+      cleanupAllListeners();
+      listenMyServices();
+      listenProviderMessages();
+    }
+
+    // ================================================================
+    // 5. PERFIL DO FORNECEDOR
+    // ================================================================
+    function populateCategorySelects() {
+      ['profileCategory', 'svcCategory'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const current = sel.value;
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        CATEGORIES.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          sel.appendChild(opt);
+        });
+        if (current && CATEGORIES.includes(current)) sel.value = current;
+      });
+    }
+    document.addEventListener('DOMContentLoaded', populateCategorySelects);
+
+    async function saveProviderProfile(event) {
+      event.preventDefault();
+      const btn = event.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Salvando...';
+      try {
+        const name = document.getElementById('profileName').value.trim();
+        const category = document.getElementById('profileCategory').value;
+        const description = document.getElementById('profileDesc').value.trim();
+        const location = document.getElementById('profileLocation').value.trim();
+        const phone = document.getElementById('profilePhone').value.trim();
+        const email = document.getElementById('profileEmail').value.trim();
+        const avatar = document.getElementById('profileAvatar').value.trim();
+        if (!name || !category) { showToast('Preencha nome e categoria.', 'error'); return; }
+        const profile = { name, category, description, location, phone, email, avatar: avatar || null, rating: 5.0,
+          createdAt: firebase.database.ServerValue.TIMESTAMP };
+        await database.ref('providerProfiles/' + currentUser.uid).set(profile);
+        await database.ref('professionals/' + currentUser.uid).set({ ...profile, uid: currentUser.uid });
+        currentProviderData = { ...profile, uid: currentUser.uid };
+        currentProviderId = currentUser.uid;
+        document.getElementById('modalProviderProfile').style.display = 'none';
+        showToast('Perfil salvo com sucesso! ✨', 'success');
+        document.getElementById('providerNameDisplay').textContent = name;
+        document.getElementById('providerCatDisplay').textContent = category;
+        if (currentUserType === 'provide') {
+          cleanupAllListeners();
+          listenMyServices();
+          listenProviderMessages();
+        }
+      } catch (e) {
+        showToast('Erro ao salvar perfil.', 'error');
+        console.error(e);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Salvar Perfil';
+      }
+    }
+
+    function editProfile() {
+      if (!currentProviderData) { showToast('Nenhum perfil carregado.', 'error'); return; }
+      const d = currentProviderData;
+      document.getElementById('profileName').value = d.name || '';
+      document.getElementById('profileCategory').value = d.category || '';
+      document.getElementById('profileDesc').value = d.description || '';
+      document.getElementById('profileLocation').value = d.location || '';
+      document.getElementById('profilePhone').value = d.phone || '';
+      document.getElementById('profileEmail').value = d.email || '';
+      document.getElementById('profileAvatar').value = d.avatar || '';
+      document.getElementById('modalProviderProfile').style.display = 'flex';
+    }
+
+    // ================================================================
+    // 6. NOME DO CLIENTE
+    // ================================================================
+    function getClientName() { return localStorage.getItem('eventconnect_clientName') || ''; }
+
+    function setClientName(event) {
+      event.preventDefault();
+      const name = document.getElementById('clientNameInput').value.trim();
+      if (name) {
+        localStorage.setItem('eventconnect_clientName', name);
+        document.getElementById('modalClientName').style.display = 'none';
+        if (currentChatProId) openProfessionalProfile(currentChatProId);
+        else switchToContract();
+      }
+    }
+
+    // ================================================================
+    // 7. LISTENERS DE DADOS
+    // ================================================================
+    function cleanupAllListeners() {
+      cleanupChatListener();
+      if (professionalsListenerRef) { professionalsListenerRef.off();
+        professionalsListenerRef = null; }
+      if (myServicesListenerRef) { myServicesListenerRef.off();
+        myServicesListenerRef = null; }
+      if (providerMessagesListenerRef) { providerMessagesListenerRef.off();
+        providerMessagesListenerRef = null; }
+    }
+
+    function cleanupChatListener() {
+      if (chatListenerRef) { chatListenerRef.off();
+        chatListenerRef = null; }
+    }
+
+    // --- Profissionais ---
+    function listenProfessionals() {
+      if (professionalsListenerRef) professionalsListenerRef.off();
+      const ref = database.ref('professionals');
+      professionalsListenerRef = ref;
+      ref.on('value', snap => renderProfessionalsGrid(snap.val() || {}));
+    }
+
+    function renderProfessionalsGrid(data) {
+      const grid = document.getElementById('professionalsGrid');
+      const empty = document.getElementById('emptyStateContract');
+      let pros = Object.values(data);
+      if (activeFilter !== 'Todos') pros = pros.filter(p => p.category === activeFilter);
+      if (!pros.length) { grid.innerHTML = '';
+        empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      grid.innerHTML = pros.map(pro => {
+        const initials = (pro.name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const avatar = pro.avatar ? `<img src="${pro.avatar}" alt="${pro.name}" loading="lazy">` :
+          `<span style="font-size:3rem;">${initials}</span>`;
+        return `<div class="professional-card" onclick="openProfessionalProfile('${pro.uid}')">
+                <div class="card-img">${avatar}</div>
+                <div class="card-body">
+                  <span class="cat">${pro.category}</span>
+                  <h4>${pro.name}</h4>
+                  <span class="stars">${'⭐'.repeat(Math.round(pro.rating||5))} ${(pro.rating||5).toFixed(1)}</span>
+                  <p class="desc">${pro.description||''}</p>
+                  ${pro.location?`<small>📍 ${pro.location}</small>`:''}
+                </div>
+              </div>`;
+      }).join('');
+    }
+
+    // --- Serviços ---
+    function listenMyServices() {
+      if (!currentProviderId) return;
+      if (myServicesListenerRef) myServicesListenerRef.off();
+      const ref = database.ref('services').orderByChild('professionalId').equalTo(currentProviderId);
+      myServicesListenerRef = ref;
+      ref.on('value', snap => renderMyServicesGrid(snap.val() || {}));
+    }
+
+    function renderMyServicesGrid(services) {
+      const grid = document.getElementById('myServicesGrid');
+      const empty = document.getElementById('emptyStateProvide');
+      const arr = Object.entries(services).map(([id, svc]) => ({ id, ...svc }));
+      if (!arr.length) { grid.innerHTML = '';
+        empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      grid.innerHTML = arr.map(svc => `
+              <div class="professional-card">
+                <div class="card-img">${svc.image ? `<img src="${svc.image}" loading="lazy">` : '<span style="font-size:3rem;">📦</span>'}</div>
+                <div class="card-body">
+                  <span class="cat">${svc.category}</span>
+                  <h4>${svc.name}</h4>
+                  <p class="desc">${svc.description||''}</p>
+                  <strong style="color:var(--primary);">R$ ${parseFloat(svc.price).toFixed(2)}</strong>
+                  <div style="margin-top:8px;display:flex;gap:6px;">
+                    <button class="btn btn-outline btn-sm" onclick="editService('${svc.id}')">✏️</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteService('${svc.id}')">🗑️</button>
+                  </div>
+                </div>
+              </div>`).join('');
+    }
+
+    // --- Mensagens recebidas ---
+    function listenProviderMessages() {
+      if (!currentProviderId) return;
+      if (providerMessagesListenerRef) providerMessagesListenerRef.off();
+      const ref = database.ref('messages').orderByChild('toProfessionalId').equalTo(currentProviderId);
+      providerMessagesListenerRef = ref;
+      ref.on('value', snap => renderProviderMessagesList(snap.val() || {}));
+    }
+
+    function renderProviderMessagesList(msgs) {
+      const list = document.getElementById('providerMessagesList');
+      const empty = document.getElementById('emptyMessages');
+      const arr = Object.entries(msgs).map(([id, m]) => ({ id, ...m }));
+      const groups = {};
+      arr.forEach(m => { const k = m.conversationKey; if (!groups[k]) groups[k] = [];
+        groups[k].push(m); });
+      const keys = Object.keys(groups);
+      if (!keys.length) { list.innerHTML = '';
+        empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      list.innerHTML = keys.map(k => {
+        const conv = groups[k].sort((a, b) => b.timestamp - a.timestamp);
+        const last = conv[0];
+        const unread = conv.filter(m => !m.read && m.from === 'client').length;
+        return `<div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.05);" onclick="openProviderChatView('${k}')">
+                <strong>💬 ${last.clientName||'Cliente'}</strong>
+                <span style="float:right;font-size:0.75rem;color:var(--text2);">${new Date(last.timestamp).toLocaleString()}</span>
+                <p>${last.text.substring(0,60)}${last.text.length>60?'...':''}</p>
+                ${unread ? `<span class="badge" style="background:var(--primary);color:#fff;">${unread} nova(s)</span>` : ''}
+              </div>`;
+      }).join('');
+    }
+
+    // ================================================================
+    // 8. FILTROS
+    // ================================================================
+    function renderFilterChips() {
+      document.getElementById('filterChips').innerHTML = CATEGORIES_WITH_ALL.map(cat =>
+        `<button class="chip ${cat===activeFilter?'active':''}" onclick="setFilter('${cat}')">${cat}</button>`
+      ).join('');
+    }
+
+    async function setFilter(cat) {
+      activeFilter = cat;
+      renderFilterChips();
+      const snap = await database.ref('professionals').once('value');
+      renderProfessionalsGrid(snap.val() || {});
+    }
+
+    // ================================================================
+    // 9. PERFIL DO PROFISSIONAL + CHAT
+    // ================================================================
+    async function openProfessionalProfile(proUid) {
+      if (!getClientName()) { currentChatProId = proUid;
+        document.getElementById('modalClientName').style.display = 'flex'; return; }
+      try {
+        const snapPro = await database.ref('professionals/' + proUid).once('value');
+        const pro = snapPro.val();
+        if (!pro) { showToast('Profissional não encontrado.', 'error'); return; }
+        const snapSvc = await database.ref('services').orderByChild('professionalId').equalTo(proUid).once('value');
+        const services = snapSvc.val() || {};
+        const content = document.getElementById('profileContent');
+        const initials = (pro.name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const avatarHtml = pro.avatar ?
+          `<img src="${pro.avatar}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;">` :
+          `<div style="width:100px;height:100px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--text2);">${initials}</div>`;
+        let servicesHtml = Object.values(services).map(svc => `
+                <div style="flex:1;min-width:140px;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+                  ${svc.image ? `<img src="${svc.image}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;" loading="lazy">` : '📦'}
+                  <strong>${svc.name}</strong><br><small>${svc.description||''}</small>
+                  <div style="color:var(--primary);font-weight:700;">R$ ${parseFloat(svc.price).toFixed(2)}</div>
+                </div>`).join('') || '<p style="color:var(--text2);">Este profissional ainda não cadastrou serviços.</p>';
+        content.innerHTML = `
+              <div style="text-align:center;">
+                ${avatarHtml}
+                <h3>${pro.name}</h3>
+                <span class="badge badge-verified">✅ Verificado</span>
+                <div class="stars">${'⭐'.repeat(Math.round(pro.rating||5))} ${(pro.rating||5).toFixed(1)}</div>
+                <p>📍 ${pro.location||'—'} | 📞 ${pro.phone||'—'} | ✉️ ${pro.email||'—'}</p>
+                <p>${pro.description||''}</p>
+              </div>
+              <h4 style="color:var(--primary);">Serviços</h4>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;">${servicesHtml}</div>
+              <hr style="margin:16px 0;border-color:rgba(110,42,82,0.2);">
+              <h4>💬 Solicitar Orçamento</h4>
+              <div class="chat-container" style="height:300px;">
+                <div class="chat-messages" id="chatMessagesPro"></div>
+                <div class="chat-input-area">
+                  <input type="text" id="chatInputPro" placeholder="Mensagem..." onkeydown="if(event.key==='Enter')sendMessageToPro()">
+                  <button class="btn btn-primary btn-sm" onclick="sendMessageToPro()">Enviar</button>
+                </div>
+              </div>`;
+        document.getElementById('modalProfileOverlay').style.display = 'flex';
+        currentChatProId = proUid;
+        startChatListener(proUid);
+      } catch (e) {
+        showToast('Erro ao carregar perfil.', 'error');
+        console.error(e);
+      }
+    }
+
+    function startChatListener(proUid) {
+      cleanupChatListener();
+      const convKey = `pro_${proUid}_with_${currentUser.uid}`;
+      const ref = database.ref('messages').orderByChild('conversationKey').equalTo(convKey);
+      chatListenerRef = ref;
+      ref.on('value', snap => {
+        const msgs = Object.values(snap.val() || {}).sort((a, b) => a.timestamp - b.timestamp);
+        const container = document.getElementById('chatMessagesPro');
+        if (!container) return;
+        container.innerHTML = msgs.map(m => {
+          const sent = m.from === 'client';
+          const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit',
+            minute: '2-digit' }) : '';
+          return `<div class="chat-msg ${sent?'sent':'received'}">${m.text}<span class="msg-time">${time}</span></div>`;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+      });
+    }
+
+    async function sendMessageToPro() {
+      const input = document.getElementById('chatInputPro');
+      const text = input?.value.trim();
+      if (!text || !currentChatProId) return;
+      try {
+        const convKey = `pro_${currentChatProId}_with_${currentUser.uid}`;
+        await database.ref('messages').push({
+          from: 'client',
+          toProfessionalId: currentChatProId,
+          text,
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          conversationKey: convKey,
+          read: false,
+          clientName: getClientName() || 'Cliente',
+          clientUid: currentUser.uid
+        });
+        input.value = '';
+      } catch (e) { showToast('Erro ao enviar mensagem.', 'error');
+        console.error(e); }
+    }
+
+    // --- Visualização de chat pelo profissional ---
+    async function openProviderChatView(convKey) {
+      try {
+        const snap = await database.ref('messages').orderByChild('conversationKey').equalTo(convKey).once('value');
+        const msgsObj = snap.val() || {};
+        const updates = {};
+        Object.entries(msgsObj).forEach(([id, m]) => { if (!m.read && m.from === 'client') updates[`messages/${id}/read`] =
+            true; });
+        if (Object.keys(updates).length) await database.ref().update(updates);
+        const msgs = Object.values(msgsObj).sort((a, b) => a.timestamp - b.timestamp);
+        const content = document.getElementById('profileContent');
+        content.innerHTML = `
+              <h3>💬 Chat</h3>
+              <div class="chat-container" style="height:350px;">
+                <div class="chat-messages" id="providerChatView">
+                  ${msgs.map(m => {
+                    const rec = m.from === 'client';
+                    const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) : '';
+                    return `<div class="chat-msg ${rec?'received':'sent'}">${m.text}<span class="msg-time">${time}</span></div>`;
+                  }).join('')}
+                </div>
+                <div class="chat-input-area">
+                  <input type="text" id="providerChatInput" placeholder="Responder..." onkeydown="if(event.key==='Enter')sendProviderReply('${convKey}')">
+                  <button class="btn btn-primary btn-sm" onclick="sendProviderReply('${convKey}')">Enviar</button>
+                </div>
+              </div>`;
+        document.getElementById('modalProfileOverlay').style.display = 'flex';
+        cleanupChatListener();
+        const ref = database.ref('messages').orderByChild('conversationKey').equalTo(convKey);
+        chatListenerRef = ref;
+        ref.on('value', snap => {
+          const updated = Object.values(snap.val() || {}).sort((a, b) => a.timestamp - b.timestamp);
+          const container = document.getElementById('providerChatView');
+          if (!container) return;
+          container.innerHTML = updated.map(m => {
+            const rec = m.from === 'client';
+            const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit',
+              minute: '2-digit' }) : '';
+            return `<div class="chat-msg ${rec?'received':'sent'}">${m.text}<span class="msg-time">${time}</span></div>`;
+          }).join('');
+          container.scrollTop = container.scrollHeight;
+        });
+      } catch (e) { showToast('Erro ao abrir chat.', 'error');
+        console.error(e); }
+    }
+
+    async function sendProviderReply(convKey) {
+      const input = document.getElementById('providerChatInput');
+      const text = input?.value.trim();
+      if (!text) return;
+      try {
+        const proUid = convKey.split('_with_')[0].replace('pro_', '');
+        await database.ref('messages').push({
+          from: 'provider',
+          toProfessionalId: proUid,
+          text,
+          timestamp: firebase.database.ServerValue.TIMESTAMP,
+          conversationKey: convKey,
+          read: true,
+          clientName: currentProviderData?.name || 'Fornecedor'
+        });
+        input.value = '';
+      } catch (e) { showToast('Erro ao enviar resposta.', 'error');
+        console.error(e); }
+    }
+
+    // ================================================================
+    // 10. CRUD DE SERVIÇOS
+    // ================================================================
+    function openProvideForm() {
+      if (!currentProviderData) { showToast('Crie seu perfil primeiro!', 'error'); return; }
+      document.getElementById('svcEditId').value = '';
+      document.getElementById('formService').reset();
+      document.getElementById('svcImagePreview').style.display = 'none';
+      document.getElementById('uploadPlaceholder').style.display = 'inline';
+      document.getElementById('svcImageUrl').value = '';
+      document.getElementById('svcCategory').value = '';
+      document.getElementById('modalServiceOverlay').style.display = 'flex';
+    }
+
+    async function editService(id) {
+      try {
+        const snap = await database.ref('services/' + id).once('value');
+        const svc = snap.val();
+        if (!svc) { showToast('Serviço não encontrado.', 'error'); return; }
+        document.getElementById('svcEditId').value = id;
+        document.getElementById('svcName').value = svc.name || '';
+        document.getElementById('svcCategory').value = svc.category || '';
+        document.getElementById('svcDesc').value = svc.description || '';
+        document.getElementById('svcPrice').value = svc.price || '';
+        document.getElementById('svcImageUrl').value = (svc.image && svc.image.startsWith('http')) ? svc.image : '';
+        if (svc.image && svc.image.startsWith('data:')) {
+          document.getElementById('svcImagePreview').src = svc.image;
+          document.getElementById('svcImagePreview').style.display = 'block';
+          document.getElementById('uploadPlaceholder').style.display = 'none';
+        } else {
+          document.getElementById('svcImagePreview').style.display = 'none';
+          document.getElementById('uploadPlaceholder').style.display = 'inline';
+        }
+        document.getElementById('modalServiceOverlay').style.display = 'flex';
+      } catch (e) { showToast('Erro ao carregar serviço.', 'error');
+        console.error(e); }
+    }
+
+    async function saveService(e) {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Salvando...';
+      try {
+        const editId = document.getElementById('svcEditId').value;
+        const name = document.getElementById('svcName').value.trim();
+        const category = document.getElementById('svcCategory').value;
+        const description = document.getElementById('svcDesc').value.trim();
+        const price = parseFloat(document.getElementById('svcPrice').value);
+        const imageUrl = document.getElementById('svcImageUrl').value.trim();
+        const previewImg = document.getElementById('svcImagePreview');
+        const hasPreview = previewImg.style.display !== 'none' && previewImg.src;
+        if (!name || !category || isNaN(price) || price < 0) { showToast('Preencha todos os campos obrigatórios.',
+          'error'); return; }
+        let image = null;
+        if (imageUrl) image = imageUrl;
+        else if (hasPreview && previewImg.src.startsWith('data:')) image = previewImg.src;
+        const data = { professionalId: currentProviderId, name, category, description, price, image };
+        if (editId) await database.ref('services/' + editId).update(data);
+        else await database.ref('services').push(data);
+        closeModal('modalServiceOverlay');
+        showToast('Serviço salvo com sucesso!', 'success');
+      } catch (e) { showToast('Erro ao salvar serviço.', 'error');
+        console.error(e); } finally { btn.disabled = false;
+        btn.innerHTML = '💾 Salvar Serviço'; }
+    }
+
+    async function deleteService(id) {
+      if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
+      try { await database.ref('services/' + id).remove();
+        showToast('Serviço removido.', 'success'); } catch (e) { showToast('Erro ao excluir.', 'error');
+        console.error(e); }
+    }
+
+    function previewServiceImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { showToast('Imagem muito grande (máx. 2MB). Use URL externa.', 'error');
+        e.target.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById('svcImagePreview').src = ev.target.result;
+        document.getElementById('svcImagePreview').style.display = 'block';
+        document.getElementById('uploadPlaceholder').style.display = 'none';
+        document.getElementById('svcImageUrl').value = '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ================================================================
+    // 11. UTILITÁRIOS
+    // ================================================================
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+      if (id === 'modalProfileOverlay') { cleanupChatListener();
+        currentChatProId = null; }
+    }
+    document.addEventListener('click', e => {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
+        if (e.target.id === 'modalProfileOverlay') { cleanupChatListener();
+          currentChatProId = null; }
+      }
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay').forEach(o => {
+          if (o.style.display === 'flex') {
+            o.style.display = 'none';
+            if (o.id === 'modalProfileOverlay') { cleanupChatListener();
+              currentChatProId = null; }
+          }
+        });
+      }
+    });
+
+    function showToast(msg, type = 'success') {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      document.getElementById('toastContainer').appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    // ================================================================
+    // 12. ANÚNCIOS E FORNECEDORES EM DESTAQUE (do arquivo original)
+    // ================================================================
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+        "'": '&#39;' } [c])); }
+
+    // Anúncios globais
+    database.ref('ads').on('value', snap => {
+      const ads = Object.values(snap.val() || {});
+      const now = new Date();
+      const topAds = ads.filter(a => a.position === 'top' && new Date(a.expire) > now);
+      const bottomAds = ads.filter(a => a.position === 'bottom' && new Date(a.expire) > now);
+      document.getElementById('adsTopIndex').innerHTML = topAds.map(a =>
+        `<div class="ad-banner"><span class="ad-label">Anúncio</span><h4>${esc(a.title)}</h4><p>${esc(a.content)}</p></div>`
+      ).join('');
+      document.getElementById('adsBottomIndex').innerHTML = bottomAds.map(a =>
+        `<div class="ad-banner"><span class="ad-label">Anúncio</span><h4>${esc(a.title)}</h4><p>${esc(a.content)}</p></div>`
+      ).join('');
+    });
+
+    // Fornecedores em destaque
+    database.ref('profAds').on('value', snap => {
+      const ads = Object.values(snap.val() || {});
+      const now = new Date();
+      const active = ads.filter(a => new Date(a.expire) > now).slice(0, 3);
+      const box = document.getElementById('profAdsIndex');
+      if (!active.length) { box.innerHTML = ''; return; }
+      const getImg = (name) => {
+        const hash = name ? name.length : 0;
+        const imgs = [
+          'https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=200&h=200&fit=crop',
+          'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=200&h=200&fit=crop',
+          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200&h=200&fit=crop'
+        ];
+        return imgs[hash % imgs.length];
+      };
+      box.innerHTML =
+        `<div class="section-eyebrow">Selecionados para você</div><div class="section-title">Fornecedores em <span>destaque</span></div>` +
+        active.map(a => `
+            <div class="prof-ad-card">
+              <div class="prof-img" style="background-image:url('${getImg(a.professionalName)}')"></div>
+              <div class="prof-info">
+                <h4>${esc(a.title)}</h4>
+                <p>${esc(a.content)}</p>
+                <div class="prof-ad-meta">
+                  <span>&#9829; ${esc(a.professionalName || 'Fornecedor')}</span>
+                  ${a.specialties?.length ? ' &middot; ' + a.specialties.slice(0, 2).map(s => esc(s)).join(', ') : ''}
+                  ${a.region ? ' &middot; 📍 ' + esc(a.region) : ''}
+                </div>
+                <span class="btn-link" onclick="switchToContract()">Ver perfil completo &rarr;</span>
+              </div>
+            </div>`).join('');
+    });
+
+    // ================================================================
+    // 13. INICIALIZAÇÃO
+    // ================================================================
+    (async function init() {
+      await signInAnonymously();
+      if (!currentUser) return;
+      try {
+        const snap = await database.ref('providerProfiles/' + currentUser.uid).once('value');
+        if (snap.exists()) {
+          currentProviderData = snap.val();
+          currentProviderData.uid = currentUser.uid;
+          currentProviderId = currentUser.uid;
+          document.getElementById('btnEditProfile').style.display = 'inline-flex';
+        }
+      } catch (e) { console.warn('Erro ao carregar perfil inicial:', e); }
+      goHome();
+    })();
+  </script>
+
+</body>
+</html>
