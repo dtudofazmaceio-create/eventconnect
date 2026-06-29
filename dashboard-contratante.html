@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowStageEventos - Meu Casamento</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #b85c4a;
+            --primary-dark: #9e4a3a;
+            --primary-light: #f5e8e4;
+            --secondary: #2d2a2a;
+            --bg-soft: #fdf8f6;
+            --white: #ffffff;
+            --gray: #6b6b6b;
+            --gray-light: #e8e0dc;
+            --border: #e0d6d2;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+            --font-body: 'Inter', sans-serif;
+            --font-title: 'Playfair Display', serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --success: #2d7d46;
+            --warning: #e6a34b;
+            --danger: #b85c4a;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--secondary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--white);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo span {
+            font-weight: 400;
+            color: var(--secondary);
+        }
+
+        .nav {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--secondary);
+            transition: var(--transition);
+            position: relative;
+            text-decoration: none;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav a:hover {
+            color: var(--primary);
+        }
+
+        .nav a.active {
+            color: var(--primary);
+            font-weight: 600;
+            border-bottom-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            background: var(--white);
+            color: var(--secondary);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 92, 74, 0.3);
+        }
+
+        .btn-outline {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 6px 18px;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+            border-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #236835;
+            border-color: #236835;
+            transform: translateY(-2px);
+        }
+
+        /* ===== DASHBOARD HERO ===== */
+        .dashboard-hero {
+            padding: 40px 0 60px;
+            background: linear-gradient(160deg, var(--secondary) 0%, #1a1818 100%);
+            color: var(--white);
+        }
+
+        .dashboard-hero .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .dashboard-hero h1 {
+            font-family: var(--font-title);
+            font-size: 2rem;
+        }
+
+        .dashboard-hero .user-info {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-hero .user-info strong {
+            color: var(--white);
+        }
+
+        .dashboard-hero .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* ===== TOOLS NAVIGATION ===== */
+        .tools-navigation {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+            overflow-x: auto;
+        }
+
+        .tools-navigation .container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .tools-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .tools-nav-item:hover {
+            color: var(--secondary);
+            background: var(--bg-soft);
+        }
+
+        .tools-nav-item.active {
+            color: var(--primary);
+            background: var(--primary-light);
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tools-nav-item .icon {
+            font-size: 1.2rem;
+        }
+
+        /* ===== DASHBOARD STATS ===== */
+        .dashboard-stats {
+            padding: 32px 0;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dashboard-stats .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: var(--radius);
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card .number {
+            font-family: var(--font-title);
+            font-size: 2.4rem;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .stat-card .trend {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-card .trend.up {
+            color: var(--success);
+        }
+
+        .stat-card .trend.down {
+            color: var(--danger);
+        }
+
+        /* ===== DASHBOARD CONTENT ===== */
+        .dashboard-content {
+            padding: 40px 0;
+        }
+
+        .dashboard-content .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+        .panel {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .panel h3 {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+        .panel .empty {
+            color: var(--gray);
+            text-align: center;
+            padding: 32px 0;
+            font-size: 0.95rem;
+        }
+
+        /* ===== TASKS ===== */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            background: var(--bg-soft);
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item .task-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .task-item .task-check:hover {
+            border-color: var(--primary);
+        }
+
+        .task-item .task-check.done {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--white);
+        }
+
+        .task-item .task-info {
+            flex: 1;
+        }
+
+        .task-item .task-info .title {
+            font-weight: 500;
+        }
+
+        .task-item .task-info .title.done {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .task-item .task-info .meta {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .task-item .task-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* ===== GUESTS ===== */
+        .guest-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .guest-item:last-child {
+            border-bottom: none;
+        }
+
+        .guest-item .guest-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .guest-item .guest-info {
+            flex: 1;
+        }
+
+        .guest-item .guest-info .name {
+            font-weight: 500;
+        }
+
+        .guest-item .guest-info .group {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .guest-item .guest-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+        }
+
+        .guest-status.confirmed {
+            background: #e3f0e5;
+            color: var(--success);
+        }
+
+        .guest-status.pending {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .guest-status.declined {
+            background: #fde6e6;
+            color: var(--danger);
+        }
+
+        /* ===== BUDGET ===== */
+        .budget-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .budget-item {
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+        }
+
+        .budget-item .value {
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+        }
+
+        .budget-item .value.estimated {
+            color: var(--secondary);
+        }
+
+        .budget-item .value.actual {
+            color: var(--success);
+        }
+
+        .budget-item .label {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quick-actions .action-btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-soft);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .quick-actions .action-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .quick-actions .action-btn .icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ===== WEDDING DETAILS ===== */
+        .wedding-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .wedding-detail {
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .wedding-detail:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .wedding-detail .icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .wedding-detail .value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .wedding-detail .label {
+            font-size: 0.7rem;
+            color: var(--gray);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+            pointer-events: none;
+            z-index: 999;
+            font-size: 0.95rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #2d7d46;
+        }
+
+        .toast-error {
+            background: #b85c4a;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--secondary);
+            color: #ccc;
+            padding: 56px 0 24px;
+            margin-top: 64px;
+            border-radius: 40px 40px 0 0;
+        }
+
+        .footer .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer-brand {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            color: var(--white);
+        }
+
+        .footer-brand span {
+            color: var(--primary);
+        }
+
+        .footer p {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .footer h4 {
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .footer a {
+            display: block;
+            color: #bbb;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer a:hover {
+            color: var(--white);
+        }
+
+        .footer .copy {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid #444;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .footer-social a {
+            display: inline-flex;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        .footer-social a:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 1024px) {
+            .dashboard-stats .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-content .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .wedding-details {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer .container {
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+            }
+
+            .dashboard-hero .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-profile {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav {
+                gap: 12px;
+                justify-content: center;
+            }
+
+            .dashboard-stats .grid-4 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .budget-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .wedding-details {
+                grid-template-columns: 1fr;
+            }
+
+            .footer .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-social {
+                justify-content: center;
+            }
+
+            .tools-navigation .container {
+                gap: 4px;
+            }
+
+            .tools-nav-item {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+
+            .dashboard-hero h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">💒</span>
+                FlowStage<span>Eventos</span>
+            </a>
+            <nav class="nav" id="mainNav">
+                <a href="index.html">Início</a>
+                <a href="#" class="active">Meu Casamento</a>
+                <a href="#contato">Contato</a>
+                <a href="#" id="btnLogout" class="btn btn-danger btn-sm">🚪 Sair</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== DASHBOARD HERO ===== -->
+    <section class="dashboard-hero">
+        <div class="container">
+            <div>
+                <h1>📊 Meu Casamento</h1>
+                <div class="user-info" id="userInfo">
+                    <strong>Carregando...</strong>
+                </div>
+            </div>
+            <div class="user-profile">
+                <img class="user-avatar" id="userAvatar" src="https://cdn1.casamentos.com.br/assets/img/user/150x150/user-nodefined-150.jpg" alt="Avatar" />
+                <span style="font-size: 0.9rem; color: #aaa;">
+                    <span id="userName">Usuário</span>
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TOOLS NAVIGATION ===== -->
+    <nav class="tools-navigation">
+        <div class="container">
+            <a href="#" class="tools-nav-item active" data-tool="dashboard">
+                <span class="icon">📊</span> Dashboard
+            </a>
+            <a href="#" class="tools-nav-item" data-tool="checklist">
+                <span class="icon">✅</span> Agenda
+            </a>
+            <a href="#" class="tools-nav-item" data-tool="guests">
+                <span class="icon">👥</span> Convidados
+            </a>
+            <a href="#" class="tools-nav-item" data-tool="vendors">
+                <span class="icon">🏢</span> Fornecedores
+            </a>
+            <a href="#" class="tools-nav-item" data-tool="budget">
+                <span class="icon">💰</span> Orçamento
+            </a>
+            <a href="#" class="tools-nav-item" data-tool="website">
+                <span class="icon">🌐</span> Site
+            </a>
+        </div>
+    </nav>
+
+    <!-- ===== DASHBOARD STATS ===== -->
+    <section class="dashboard-stats">
+        <div class="container">
+            <div class="grid-4">
+                <div class="stat-card">
+                    <div class="number" id="statTarefas">0</div>
+                    <div class="label">Tarefas completadas</div>
+                    <div class="trend up">↑ 12% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statConvidados">0</div>
+                    <div class="label">Convidados confirmados</div>
+                    <div class="trend up">↑ 8% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statFornecedores">0</div>
+                    <div class="label">Fornecedores contratados</div>
+                    <div class="trend up">↑ 15% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statGastos">R$ 0</div>
+                    <div class="label">Gastos totais</div>
+                    <div class="trend down">↓ 2% este mês</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== DASHBOARD CONTENT ===== -->
+    <section class="dashboard-content">
+        <div class="container">
+            <div class="grid-2">
+                <!-- Coluna Principal -->
+                <div>
+                    <!-- Próximas Tarefas -->
+                    <div class="panel" id="panelChecklist">
+                        <h3>✅ Próximas tarefas</h3>
+                        <div id="tasksContainer">
+                            <div class="empty">Carregando tarefas...</div>
+                        </div>
+                        <div style="margin-top: 16px; text-align: right;">
+                            <a href="#" class="btn btn-outline btn-sm" id="btnVerTarefas">Ver todas as tarefas</a>
+                        </div>
+                    </div>
+
+                    <!-- Próximos Passos - Fornecedores -->
+                    <div class="panel mt-24" id="panelVendors">
+                        <h3>🏢 Próximos passos</h3>
+                        <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 16px;">Encontre os melhores fornecedores para seu casamento</p>
+                        <div id="vendorsContainer">
+                            <div class="empty">Carregando fornecedores recomendados...</div>
+                        </div>
+                        <div style="margin-top: 16px; text-align: right;">
+                            <a href="#" class="btn btn-primary btn-sm" id="btnBuscarFornecedores">Buscar fornecedores</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Lateral -->
+                <div>
+                    <!-- Meus Convidados -->
+                    <div class="panel" id="panelGuests">
+                        <h3>👥 Meus convidados</h3>
+                        <div id="guestsContainer">
+                            <div class="empty">Carregando convidados...</div>
+                        </div>
+                        <div style="margin-top: 16px; text-align: right;">
+                            <a href="#" class="btn btn-outline btn-sm" id="btnVerConvidados">Ver lista completa</a>
+                        </div>
+                    </div>
+
+                    <!-- Meu Orçamento -->
+                    <div class="panel mt-24" id="panelBudget">
+                        <h3>💰 Meu orçamento</h3>
+                        <div class="budget-summary">
+                            <div class="budget-item">
+                                <div class="value estimated" id="budgetEstimated">R$ 25.000</div>
+                                <div class="label">Custo estimado</div>
+                            </div>
+                            <div class="budget-item">
+                                <div class="value actual" id="budgetActual">R$ 0</div>
+                                <div class="label">Gasto até agora</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <a href="#" class="btn btn-primary btn-sm" id="btnAdicionarGasto">Adicionar gasto</a>
+                        </div>
+                    </div>
+
+                    <!-- Ações Rápidas -->
+                    <div class="panel mt-24">
+                        <h3>⚡ Ações rápidas</h3>
+                        <div class="quick-actions">
+                            <a href="#" class="action-btn" id="btnAddTask">
+                                <span class="icon">➕</span>
+                                Nova tarefa
+                            </a>
+                            <a href="#" class="action-btn" id="btnAddGuest">
+                                <span class="icon">👤</span>
+                                Adicionar convidado
+                            </a>
+                            <a href="#" class="action-btn" id="btnFindVendor">
+                                <span class="icon">🔍</span>
+                                Buscar fornecedor
+                            </a>
+                            <a href="#" class="action-btn" id="btnCreateWebsite">
+                                <span class="icon">🌐</span>
+                                Criar site
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Detalhes do Casamento -->
+                    <div class="panel mt-24">
+                        <h3>💒 Detalhes do casamento</h3>
+                        <div class="wedding-details">
+                            <div class="wedding-detail">
+                                <span class="icon">📅</span>
+                                <div class="value" id="weddingDate">31/08/2025</div>
+                                <div class="label">Data</div>
+                            </div>
+                            <div class="wedding-detail">
+                                <span class="icon">🎨</span>
+                                <div class="value" id="weddingColor">... </div>
+                                <div class="label">Cor</div>
+                            </div>
+                            <div class="wedding-detail">
+                                <span class="icon">🌿</span>
+                                <div class="value" id="weddingStyle">... </div>
+                                <div class="label">Estilo</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; text-align: center;">
+                            <a href="#" class="btn btn-outline btn-sm" id="btnEditarDetalhes">✏️ Editar detalhes</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div>
+                <div class="footer-brand">FlowStage<span>Eventos</span></div>
+                <p>Transformando sonhos em celebrações inesquecíveis desde 2020.</p>
+                <div class="footer-social">
+                    <a href="#" aria-label="Instagram">📸</a>
+                    <a href="#" aria-label="Pinterest">📌</a>
+                    <a href="#" aria-label="YouTube">▶️</a>
+                    <a href="#" aria-label="Facebook">👍</a>
+                </div>
+            </div>
+            <div>
+                <h4>Ferramentas</h4>
+                <a href="#">Agenda</a>
+                <a href="#">Convidados</a>
+                <a href="#">Orçamento</a>
+                <a href="#">Site de Casamento</a>
+            </div>
+            <div>
+                <h4>Suporte</h4>
+                <a href="#">Central de ajuda</a>
+                <a href="#">Termos de uso</a>
+                <a href="#">Privacidade</a>
+                <a href="#">Cookies</a>
+            </div>
+            <div>
+                <h4>Parceiros</h4>
+                <a href="#">Anuncie conosco</a>
+                <a href="#">Programa de afiliados</a>
+                <a href="#">Eventos exclusivos</a>
+            </div>
+            <div class="copy">
+                &copy; 2026 FlowStageEventos. Todos os direitos reservados. | Feito com ❤️ para casais apaixonados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== FIREBASE CONFIG ===== -->
+    <script>
+        // ============================================================
+        // CONFIGURAÇÃO FIREBASE - SUBSTITUA PELOS SEUS DADOS
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "seu-projeto.firebaseapp.com",
+            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // ============================================================
+        // INICIALIZA FIREBASE
+        // ============================================================
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // Referências
+        const tasksRef = db.ref('tarefas');
+        const guestsRef = db.ref('convidados');
+        const vendorsRef = db.ref('vendedores');
+        const budgetRef = db.ref('orcamento');
+        const weddingRef = db.ref('casamento');
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(message, type = '') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast';
+            if (type) el.classList.add('toast-' + type);
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        // ============================================================
+        // AUTENTICAÇÃO
+        // ============================================================
+        let currentUser = null;
+        let userId = null;
+
+        // Verifica se o usuário está logado
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                userId = user.uid;
+
+                // Atualiza informações do usuário
+                document.getElementById('userName').textContent = user.displayName || 'Usuário';
+                document.getElementById('userInfo').innerHTML = `
+                        <strong>${user.displayName || 'Usuário'}</strong> · ${user.email || 'email@exemplo.com'}
+                    `;
+                if (user.photoURL) {
+                    document.getElementById('userAvatar').src = user.photoURL;
+                }
+
+                // Carrega dados do usuário
+                carregarDadosUsuario(userId);
+
+                // Inicializa listeners em tempo real
+                inicializarListeners(userId);
+
+                showToast('👋 Bem-vindo(a) de volta!', 'success');
+            } else {
+                // Redireciona para login se não estiver logado
+                showToast('Faça login para acessar seu painel.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            }
+        });
+
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        document.getElementById('btnLogout').addEventListener('click', (e) => {
+            e.preventDefault();
+            auth.signOut().then(() => {
+                showToast('Saindo...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }).catch((err) => {
+                console.error(err);
+                showToast('Erro ao sair.', 'error');
+            });
+        });
+
+        // ============================================================
+        // CARREGA DADOS DO USUÁRIO
+        // ============================================================
+        function carregarDadosUsuario(uid) {
+            // Carrega dados do casamento
+            weddingRef.child(uid).once('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    if (data.data) document.getElementById('weddingDate').textContent = data.data;
+                    if (data.cor) document.getElementById('weddingColor').textContent = data.cor;
+                    if (data.estilo) document.getElementById('weddingStyle').textContent = data.estilo;
+                }
+            });
+
+            // Carrega orçamento
+            budgetRef.child(uid).once('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    const total = Object.values(data).reduce((acc, item) => acc + (item.valor || 0), 0);
+                    document.getElementById('budgetActual').textContent = `R$ ${total.toFixed(2)}`;
+                    document.getElementById('statGastos').textContent = `R$ ${total.toFixed(2)}`;
+                }
+            });
+
+            // Carrega convidados para contagem
+            guestsRef.child(uid).once('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    const confirmed = Object.values(data).filter(g => g.status === 'confirmado').length;
+                    document.getElementById('statConvidados').textContent = confirmed;
+                }
+            });
+
+            // Carrega tarefas para contagem
+            tasksRef.child(uid).once('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    const done = Object.values(data).filter(t => t.concluida).length;
+                    document.getElementById('statTarefas').textContent = done;
+                }
+            });
+
+            // Carrega fornecedores para contagem
+            vendorsRef.once('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    const count = Object.keys(data).length;
+                    document.getElementById('statFornecedores').textContent = count;
+                }
+            });
+        }
+
+        // ============================================================
+        // INICIALIZA LISTENERS (TEMPO REAL)
+        // ============================================================
+        function inicializarListeners(uid) {
+            // Tarefas
+            tasksRef.child(uid).orderByChild('timestamp').limitToLast(5).on('value', (snap) => {
+                renderTasks(snap);
+            });
+
+            // Convidados
+            guestsRef.child(uid).orderByChild('timestamp').limitToLast(5).on('value', (snap) => {
+                renderGuests(snap);
+            });
+
+            // Fornecedores recomendados
+            vendorsRef.orderByChild('timestamp').limitToLast(4).on('value', (snap) => {
+                renderRecommendedVendors(snap);
+            });
+        }
+
+        // ============================================================
+        // RENDERIZA TAREFAS
+        // ============================================================
+        function renderTasks(snapshot) {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = '';
+
+            const data = snapshot.val();
+            if (!data) {
+                container.innerHTML = `
+                        <div class="empty">🎉 Nenhuma tarefa pendente!</div>
+                    `;
+                return;
+            }
+
+            const entries = Object.entries(data);
+            entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+            entries.slice(0, 5).forEach(([key, task]) => {
+                const div = document.createElement('div');
+                div.className = 'task-item';
+                div.innerHTML = `
+                        <div class="task-check ${task.concluida ? 'done' : ''}" data-key="${key}" data-uid="${userId}">
+                            ${task.concluida ? '✓' : ''}
+                        </div>
+                        <div class="task-info">
+                            <div class="title ${task.concluida ? 'done' : ''}">${task.titulo || 'Nova tarefa'}</div>
+                            <div class="meta">${task.categoria || 'Geral'} · ${new Date(task.timestamp).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                        <span class="task-tag">${task.categoria || 'Geral'}</span>
+                    `;
+                container.appendChild(div);
+
+                // Evento para marcar como concluída
+                const check = div.querySelector('.task-check');
+                check.addEventListener('click', () => {
+                    const isDone = check.classList.contains('done');
+                    const newStatus = !isDone;
+                    tasksRef.child(userId).child(key).update({
+                        concluida: newStatus
+                    }).then(() => {
+                        showToast(newStatus ? '✅ Tarefa concluída!' : '🔄 Tarefa reaberta', 'success');
+                    }).catch((err) => {
+                        console.error(err);
+                        showToast('Erro ao atualizar tarefa.', 'error');
+                    });
+                });
+            });
+        }
+
+        // ============================================================
+        // RENDERIZA CONVIDADOS
+        // ============================================================
+        function renderGuests(snapshot) {
+            const container = document.getElementById('guestsContainer');
+            container.innerHTML = '';
+
+            const data = snapshot.val();
+            if (!data) {
+                container.innerHTML = `
+                        <div class="empty">👤 Nenhum convidado adicionado ainda.</div>
+                    `;
+                return;
+            }
+
+            const entries = Object.entries(data);
+            entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+            entries.slice(0, 5).forEach(([key, guest]) => {
+                const div = document.createElement('div');
+                div.className = 'guest-item';
+                const initials = (guest.nome || '?').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                const statusClass = guest.status === 'confirmado' ? 'confirmed' :
+                    guest.status === 'recusado' ? 'declined' : 'pending';
+                const statusLabel = guest.status === 'confirmado' ? '✅ Confirmado' :
+                    guest.status === 'recusado' ? '❌ Recusado' : '⏳ Pendente';
+                div.innerHTML = `
+                        <div class="guest-avatar">${initials}</div>
+                        <div class="guest-info">
+                            <div class="name">${guest.nome || 'Convidado'}</div>
+                            <div class="group">${guest.grupo || 'Família'}</div>
+                        </div>
+                        <span class="guest-status ${statusClass}">${statusLabel}</span>
+                    `;
+                container.appendChild(div);
+            });
+        }
+
+        // ============================================================
+        // RENDERIZA FORNECEDORES RECOMENDADOS
+        // ============================================================
+        function renderRecommendedVendors(snapshot) {
+            const container = document.getElementById('vendorsContainer');
+            container.innerHTML = '';
+
+            const data = snapshot.val();
+            if (!data) {
+                container.innerHTML = `
+                        <div class="empty">🔍 Nenhum fornecedor encontrado.</div>
+                    `;
+                return;
+            }
+
+            const entries = Object.entries(data);
+            entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+            entries.slice(0, 3).forEach(([key, vendor]) => {
+                const div = document.createElement('div');
+                div.className = 'guest-item';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            🏢
+                        </div>
+                        <div class="guest-info">
+                            <div class="name">${vendor.nome || 'Fornecedor'}</div>
+                            <div class="group">${vendor.categoria || 'Categoria'} · ⭐ ${vendor.avaliacao || '4.8'}</div>
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Contratar</span>
+                    `;
+                container.appendChild(div);
+            });
+        }
+
+        // ============================================================
+        // AÇÕES RÁPIDAS
+        // ============================================================
+
+        // Adicionar tarefa
+        document.getElementById('btnAddTask').addEventListener('click', (e) => {
+            e.preventDefault();
+            const titulo = prompt('Digite o nome da tarefa:');
+            if (titulo && titulo.trim()) {
+                tasksRef.child(userId).push({
+                    titulo: titulo.trim(),
+                    categoria: 'Geral',
+                    concluida: false,
+                    timestamp: Date.now()
+                }).then(() => {
+                    showToast('✅ Tarefa adicionada com sucesso!', 'success');
+                }).catch((err) => {
+                    console.error(err);
+                    showToast('Erro ao adicionar tarefa.', 'error');
+                });
+            }
+        });
+
+        // Adicionar convidado
+        document.getElementById('btnAddGuest').addEventListener('click', (e) => {
+            e.preventDefault();
+            const nome = prompt('Digite o nome do convidado:');
+            if (nome && nome.trim()) {
+                const grupo = prompt('Grupo (Família, Amigos, Trabalho, etc.):') || 'Amigos';
+                guestsRef.child(userId).push({
+                    nome: nome.trim(),
+                    grupo: grupo,
+                    status: 'pendente',
+                    timestamp: Date.now()
+                }).then(() => {
+                    showToast('👤 Convidado adicionado com sucesso!', 'success');
+                }).catch((err) => {
+                    console.error(err);
+                    showToast('Erro ao adicionar convidado.', 'error');
+                });
+            }
+        });
+
+        // Buscar fornecedores
+        document.getElementById('btnFindVendor').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('🔍 Buscando fornecedores em breve.', 'success');
+        });
+
+        document.getElementById('btnBuscarFornecedores').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('🔍 Buscando fornecedores em breve.', 'success');
+        });
+
+        // Criar site
+        document.getElementById('btnCreateWebsite').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('🌐 Criando seu site de casamento em breve.', 'success');
+        });
+
+        // Ver tarefas
+        document.getElementById('btnVerTarefas').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('📋 Lista completa de tarefas em breve.', 'success');
+        });
+
+        // Ver convidados
+        document.getElementById('btnVerConvidados').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('👥 Lista completa de convidados em breve.', 'success');
+        });
+
+        // Adicionar gasto
+        document.getElementById('btnAdicionarGasto').addEventListener('click', (e) => {
+            e.preventDefault();
+            const descricao = prompt('Descrição do gasto:');
+            if (descricao && descricao.trim()) {
+                const valor = prompt('Valor (R$):');
+                if (valor && !isNaN(parseFloat(valor))) {
+                    budgetRef.child(userId).push({
+                        descricao: descricao.trim(),
+                        valor: parseFloat(valor),
+                        timestamp: Date.now()
+                    }).then(() => {
+                        showToast('💰 Gasto adicionado com sucesso!', 'success');
+                        // Atualiza o total
+                        budgetRef.child(userId).once('value', (snap) => {
+                            const data = snap.val();
+                            if (data) {
+                                const total = Object.values(data).reduce((acc, item) => acc + (item
+                                .valor || 0), 0);
+                                document.getElementById('budgetActual').textContent =
+                                    `R$ ${total.toFixed(2)}`;
+                                document.getElementById('statGastos').textContent =
+                                    `R$ ${total.toFixed(2)}`;
+                            }
+                        });
+                    }).catch((err) => {
+                        console.error(err);
+                        showToast('Erro ao adicionar gasto.', 'error');
+                    });
+                } else {
+                    showToast('Valor inválido.', 'error');
+                }
+            }
+        });
+
+        // Editar detalhes
+        document.getElementById('btnEditarDetalhes').addEventListener('click', (e) => {
+            e.preventDefault();
+            const data = prompt('Data do casamento (DD/MM/AAAA):', '31/08/2025');
+            if (data && data.trim()) {
+                weddingRef.child(userId).update({
+                    data: data.trim()
+                }).then(() => {
+                    document.getElementById('weddingDate').textContent = data.trim();
+                    showToast('📅 Data atualizada!', 'success');
+                }).catch((err) => {
+                    console.error(err);
+                    showToast('Erro ao atualizar data.', 'error');
+                });
+            }
+        });
+
+        // Navegação entre ferramentas
+        document.querySelectorAll('.tools-nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.tools-nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const tool = item.dataset.tool;
+                showToast(`🔧 Ferramenta "${tool}" em breve.`, 'success');
+            });
+        });
+
+        // ============================================================
+        // NAVEGAÇÃO ATIVA
+        // ============================================================
+        const navLinks = document.querySelectorAll('.nav a[href]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                }
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+
+</body>
+</html>

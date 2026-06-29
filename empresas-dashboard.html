@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowStageEventos - Dashboard</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #b85c4a;
+            --primary-dark: #9e4a3a;
+            --primary-light: #f5e8e4;
+            --secondary: #2d2a2a;
+            --bg-soft: #fdf8f6;
+            --white: #ffffff;
+            --gray: #6b6b6b;
+            --gray-light: #e8e0dc;
+            --border: #e0d6d2;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+            --font-body: 'Inter', sans-serif;
+            --font-title: 'Playfair Display', serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --success: #2d7d46;
+            --warning: #e6a34b;
+            --danger: #b85c4a;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--secondary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .header-emp {
+            background: var(--secondary);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-emp .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-emp {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-emp span {
+            color: var(--primary);
+        }
+
+        .nav-emp {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-emp a {
+            color: #bbb;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-emp a:hover {
+            color: var(--white);
+        }
+
+        .nav-emp a.active {
+            color: var(--white);
+            border-bottom-color: var(--primary);
+        }
+
+        .btn-emp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            background: var(--white);
+            color: var(--secondary);
+        }
+
+        .btn-emp-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-emp-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 92, 74, 0.3);
+        }
+
+        .btn-emp-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1.5px solid #555;
+        }
+
+        .btn-emp-outline:hover {
+            border-color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-emp-sm {
+            padding: 6px 18px;
+            font-size: 0.85rem;
+        }
+
+        .btn-emp-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-emp-danger:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .dashboard-hero {
+            padding: 40px 0 60px;
+            background: linear-gradient(160deg, var(--secondary) 0%, #1a1818 100%);
+            color: var(--white);
+        }
+
+        .dashboard-hero .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .dashboard-hero h1 {
+            font-family: var(--font-title);
+            font-size: 2rem;
+        }
+
+        .dashboard-hero .emp-info {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-hero .emp-info strong {
+            color: var(--white);
+        }
+
+        .dashboard-stats {
+            padding: 32px 0;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dashboard-stats .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: var(--radius);
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card .number {
+            font-family: var(--font-title);
+            font-size: 2.4rem;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .stat-card .trend {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-card .trend.up {
+            color: var(--success);
+        }
+
+        .stat-card .trend.down {
+            color: var(--danger);
+        }
+
+        .dashboard-content {
+            padding: 40px 0;
+        }
+
+        .dashboard-content .grid-2 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+        .panel {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .panel h3 {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+        }
+
+        .panel .empty {
+            color: var(--gray);
+            text-align: center;
+            padding: 32px 0;
+            font-size: 0.95rem;
+        }
+
+        .lead-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .lead-item:hover {
+            background: var(--bg-soft);
+        }
+
+        .lead-item:last-child {
+            border-bottom: none;
+        }
+
+        .lead-item .lead-info {
+            flex: 1;
+        }
+
+        .lead-item .lead-info .name {
+            font-weight: 600;
+        }
+
+        .lead-item .lead-info .detail {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .lead-item .lead-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .lead-status.new {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .lead-status.contacted {
+            background: #e3f0e5;
+            color: var(--success);
+        }
+
+        .lead-status.closed {
+            background: var(--border);
+            color: var(--gray);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quick-actions .action-btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-soft);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .quick-actions .action-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        .quick-actions .action-btn .icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+            pointer-events: none;
+            z-index: 999;
+            font-size: 0.95rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #2d7d46;
+        }
+
+        .toast-error {
+            background: #b85c4a;
+        }
+
+        .footer-emp {
+            background: var(--secondary);
+            color: #888;
+            padding: 24px 0;
+            border-top: 1px solid #333;
+        }
+
+        .footer-emp .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-emp a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer-emp a:hover {
+            color: var(--white);
+        }
+
+        .footer-emp .links {
+            display: flex;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-stats .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-content .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-emp .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-emp {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .dashboard-hero .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .dashboard-stats .grid-4 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-emp .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-emp .links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-emp">
+        <div class="container">
+            <a href="index.html" class="logo-emp">
+                💒 FlowStage<span>Eventos</span>
+            </a>
+            <nav class="nav-emp">
+                <a href="index.html">Início</a>
+                <a href="empresas.html">Acesso Empresas</a>
+                <a href="#" class="active">Dashboard</a>
+                <a href="empresas-editar.html">Editar Perfil</a>
+                <a href="#" id="btnLogout" class="btn-emp btn-emp-outline btn-emp-sm">🚪 Sair</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="dashboard-hero">
+        <div class="container">
+            <div>
+                <h1>📊 Dashboard</h1>
+                <div class="emp-info" id="empresaInfo">
+                    <strong>Carregando...</strong>
+                </div>
+            </div>
+            <div>
+                <span style="background: var(--primary); padding: 6px 16px; border-radius: 40px; font-size: 0.85rem;">
+                    ✅ Conta ativa
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-stats">
+        <div class="container">
+            <div class="grid-4">
+                <div class="stat-card">
+                    <div class="number" id="statVisualizacoes">0</div>
+                    <div class="label">Visualizações</div>
+                    <div class="trend up">↑ 12% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statLeads">0</div>
+                    <div class="label">Leads recebidos</div>
+                    <div class="trend up">↑ 8% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statContatados">0</div>
+                    <div class="label">Contatados</div>
+                    <div class="trend up">↑ 15% este mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="statFechados">0</div>
+                    <div class="label">Fechados</div>
+                    <div class="trend down">↓ 2% este mês</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-content">
+        <div class="container">
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>📩 Últimos Leads</h3>
+                    <div id="leadsContainer">
+                        <div class="empty">Carregando leads...</div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>⚡ Ações rápidas</h3>
+                    <div class="quick-actions">
+                        <a href="empresas-editar.html" class="action-btn">
+                            <span class="icon">✏️</span>
+                            Editar perfil
+                        </a>
+                        <a href="#" class="action-btn" id="btnVerPerfil">
+                            <span class="icon">👁️</span>
+                            Ver vitrine
+                        </a>
+                        <a href="#" class="action-btn" id="btnAdicionarPromocao">
+                            <span class="icon">🎯</span>
+                            Adicionar promoção
+                        </a>
+                        <a href="#" class="action-btn" id="btnVerLeads">
+                            <span class="icon">📩</span>
+                            Ver todos os leads
+                        </a>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <h4 style="font-size: 0.9rem; color: var(--gray); margin-bottom: 8px;">📈 Desempenho</h4>
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <span style="font-size: 0.85rem;">Taxa de conversão: <strong style="color: var(--primary);">24%</strong></span>
+                            <span style="font-size: 0.85rem;">Tempo médio de resposta: <strong style="color: var(--primary);">2.4h</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-emp">
+        <div class="container">
+            <span>&copy; 2026 FlowStageEventos. Todos os direitos reservados.</span>
+            <div class="links">
+                <a href="#">Termos de uso</a>
+                <a href="#">Privacidade</a>
+                <a href="#">Cookies</a>
+                <a href="#">Suporte</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "seu-projeto.firebaseapp.com",
+            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function showToast(message, type = '') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast';
+            if (type) el.classList.add('toast-' + type);
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        // Verifica se o usuário está logado
+        const empresaLogada = JSON.parse(localStorage.getItem('empresa_logada'));
+        if (!empresaLogada) {
+            showToast('Faça login para acessar o dashboard.', 'error');
+            setTimeout(() => {
+                window.location.href = 'empresas.html';
+            }, 1500);
+        }
+
+        let empresaId = empresaLogada ? empresaLogada.id : null;
+
+        // Carrega dados da empresa
+        function carregarDadosEmpresa() {
+            if (!empresaId) return;
+
+            db.ref('empresas/' + empresaId).on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    document.getElementById('empresaInfo').innerHTML = `
+                            <strong>${data.nome || 'Empresa'}</strong> · ${data.categoria || 'Categoria'} · ${data.local || 'Local'}
+                        `;
+                    document.getElementById('statVisualizacoes').textContent = data.visualizacoes || 0;
+                    document.getElementById('statLeads').textContent = data.leads || 0;
+                    document.getElementById('statContatados').textContent = data.contatados || 0;
+                    document.getElementById('statFechados').textContent = data.fechados || 0;
+                }
+            });
+        }
+
+        // Carrega leads (mensagens) da empresa
+        function carregarLeads() {
+            const container = document.getElementById('leadsContainer');
+
+            db.ref('mensagens').orderByChild('empresaId').equalTo(empresaId).on('value', (snap) => {
+                const data = snap.val();
+                if (!data) {
+                    container.innerHTML = '<div class="empty">📭 Nenhum lead recebido ainda.</div>';
+                    return;
+                }
+
+                const entries = Object.entries(data);
+                entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+
+                if (entries.length === 0) {
+                    container.innerHTML = '<div class="empty">📭 Nenhum lead recebido ainda.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                entries.slice(0, 5).forEach(([key, lead]) => {
+                    const div = document.createElement('div');
+                    div.className = 'lead-item';
+                    div.innerHTML = `
+                            <div class="lead-info">
+                                <div class="name">${lead.nome || 'Anônimo'}</div>
+                                <div class="detail">${lead.email || ''} · ${new Date(lead.timestamp).toLocaleDateString('pt-BR')}</div>
+                                <div class="detail" style="font-size:0.8rem; color: var(--gray);">${lead.mensagem ? lead.mensagem.substring(0, 60) + '...' : ''}</div>
+                            </div>
+                            <span class="lead-status new">Novo</span>
+                        `;
+                    container.appendChild(div);
+                });
+
+                if (entries.length > 5) {
+                    const div = document.createElement('div');
+                    div.className = 'lead-item';
+                    div.style.justifyContent = 'center';
+                    div.innerHTML = `
+                            <span style="color: var(--gray); font-size: 0.9rem;">+ ${entries.length - 5} leads a mais</span>
+                        `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        // Inicializa
+        if (empresaId) {
+            carregarDadosEmpresa();
+            carregarLeads();
+        }
+
+        // Logout
+        document.getElementById('btnLogout').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('empresa_logada');
+            showToast('Saindo...', 'success');
+            setTimeout(() => {
+                window.location.href = 'empresas.html';
+            }, 1000);
+        });
+
+        // Ações rápidas
+        document.getElementById('btnVerPerfil').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('👁️ Visualizando vitrine em breve.', 'success');
+        });
+
+        document.getElementById('btnAdicionarPromocao').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('🎯 Adicionar promoção em breve.', 'success');
+        });
+
+        document.getElementById('btnVerLeads').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('📩 Todos os leads em breve.', 'success');
+        });
+    </script>
+
+</body>
+</html>

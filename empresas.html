@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowStageEventos - Área Empresas</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #b85c4a;
+            --primary-dark: #9e4a3a;
+            --primary-light: #f5e8e4;
+            --secondary: #2d2a2a;
+            --bg-soft: #fdf8f6;
+            --white: #ffffff;
+            --gray: #6b6b6b;
+            --gray-light: #e8e0dc;
+            --border: #e0d6d2;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+            --font-body: 'Inter', sans-serif;
+            --font-title: 'Playfair Display', serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--secondary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ===== HEADER ===== */
+        .header-emp {
+            background: var(--secondary);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-emp .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-emp {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-emp span {
+            color: var(--primary);
+        }
+
+        .nav-emp {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-emp a {
+            color: #bbb;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-emp a:hover {
+            color: var(--white);
+        }
+
+        .nav-emp a.active {
+            color: var(--white);
+            border-bottom-color: var(--primary);
+        }
+
+        .btn-emp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            background: var(--white);
+            color: var(--secondary);
+        }
+
+        .btn-emp-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-emp-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 92, 74, 0.3);
+        }
+
+        .btn-emp-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1.5px solid #555;
+        }
+
+        .btn-emp-outline:hover {
+            border-color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-emp-sm {
+            padding: 6px 18px;
+            font-size: 0.85rem;
+        }
+
+        /* ===== HERO EMPRESAS ===== */
+        .hero-emp {
+            padding: 60px 0 80px;
+            background: linear-gradient(160deg, var(--secondary) 0%, #1a1818 100%);
+            color: var(--white);
+            flex: 1;
+        }
+
+        .hero-emp .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hero-emp h1 {
+            font-family: var(--font-title);
+            font-size: 2.8rem;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .hero-emp h1 span {
+            color: var(--primary);
+        }
+
+        .hero-emp p {
+            font-size: 1.05rem;
+            color: #aaa;
+            margin-bottom: 32px;
+        }
+
+        .hero-emp-list {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+
+        .hero-emp-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            color: #ccc;
+            font-size: 0.95rem;
+        }
+
+        .hero-emp-list li::before {
+            content: '✅';
+            font-size: 1.1rem;
+        }
+
+        .hero-emp .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 36px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .hero-emp .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 92, 74, 0.3);
+        }
+
+        /* ===== FORMULÁRIO DE LOGIN ===== */
+        .login-box {
+            background: var(--white);
+            padding: 40px 44px;
+            border-radius: var(--radius);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .login-box h2 {
+            font-family: var(--font-title);
+            color: var(--secondary);
+            font-size: 1.6rem;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .login-box .login-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 16px;
+        }
+
+        .login-box .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--secondary);
+        }
+
+        .login-box .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--bg-soft);
+        }
+
+        .login-box .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(184, 92, 74, 0.08);
+            background: var(--white);
+        }
+
+        .login-box .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+        .login-box .login-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            font-size: 0.85rem;
+        }
+
+        .login-box .login-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .login-box .login-links a:hover {
+            color: var(--primary);
+        }
+
+        .login-box .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 20px 0;
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        .login-box .divider::before,
+        .login-box .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .login-box .social-login {
+            display: flex;
+            gap: 12px;
+        }
+
+        .login-box .social-login button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-box .social-login button:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+            pointer-events: none;
+            z-index: 999;
+            font-size: 0.95rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #2d7d46;
+        }
+
+        .toast-error {
+            background: #b85c4a;
+        }
+
+        .footer-emp {
+            background: var(--secondary);
+            color: #888;
+            padding: 24px 0;
+            margin-top: auto;
+            border-top: 1px solid #333;
+        }
+
+        .footer-emp .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-emp a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer-emp a:hover {
+            color: var(--white);
+        }
+
+        .footer-emp .links {
+            display: flex;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .hero-emp .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-emp-list {
+                text-align: left;
+                max-width: 400px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .login-box {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-emp .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-emp {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .hero-emp h1 {
+                font-size: 2rem;
+            }
+
+            .login-box {
+                padding: 28px 20px;
+            }
+
+            .footer-emp .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-emp .links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-emp">
+        <div class="container">
+            <a href="index.html" class="logo-emp">
+                💒 FlowStage<span>Eventos</span>
+            </a>
+            <nav class="nav-emp">
+                <a href="index.html">Início</a>
+                <a href="#" class="active">Acesso Empresas</a>
+                <a href="empresas-dashboard.html">Dashboard</a>
+                <a href="empresas-cadastro.html">Cadastro</a>
+                <a href="index.html#contato" class="btn-emp btn-emp-outline btn-emp-sm">Fale conosco</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero-emp">
+        <div class="container">
+            <div>
+                <h1>Faça seu negócio crescer com a <span>FlowStage</span></h1>
+                <p>Conecte-se com milhares de noivos em busca dos melhores fornecedores para seu grande dia.</p>
+                <ul class="hero-emp-list">
+                    <li>Receba solicitações de orçamento de noivos interessados</li>
+                    <li>Consiga novos clientes e multiplique o sucesso do seu negócio</li>
+                    <li>Mais de 1.200 fornecedores já confiam em nossa plataforma</li>
+                    <li>Vitrine completa com fotos, vídeos e avaliações</li>
+                </ul>
+                <a href="empresas-cadastro.html" class="btn">📝 Cadastre-se grátis</a>
+            </div>
+            <div>
+                <div class="login-box" id="loginBox">
+                    <h2>Acesso Empresas</h2>
+                    <p class="login-sub">Entre com suas credenciais para gerenciar seu negócio</p>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">E-mail de acesso</label>
+                            <input type="email" id="loginEmail" placeholder="seu@email.com" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Senha</label>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required maxlength="48" />
+                        </div>
+                        <button type="submit" class="btn btn-emp-primary" id="btnLogin">
+                            🔑 Entrar
+                        </button>
+                    </form>
+
+                    <div class="login-links">
+                        <a href="#" id="btnEsqueciSenha">Esqueceu sua senha?</a>
+                        <a href="empresas-cadastro.html">Criar conta</a>
+                    </div>
+
+                    <div class="divider">ou continue com</div>
+
+                    <div class="social-login">
+                        <button onclick="showToast('Login com Google em breve!', 'success')">
+                            🅶 Google
+                        </button>
+                        <button onclick="showToast('Login com Facebook em breve!', 'success')">
+                            👍 Facebook
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 16px; text-align: center; font-size: 0.8rem; color: var(--gray);">
+                        Ao entrar, você concorda com nossos <a href="#" style="color: var(--primary); text-decoration: none;">Termos de Uso</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-emp">
+        <div class="container">
+            <span>&copy; 2026 FlowStageEventos. Todos os direitos reservados.</span>
+            <div class="links">
+                <a href="#">Termos de uso</a>
+                <a href="#">Privacidade</a>
+                <a href="#">Cookies</a>
+                <a href="#">Suporte</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "seu-projeto.firebaseapp.com",
+            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function showToast(message, type = '') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast';
+            if (type) el.classList.add('toast-' + type);
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            if (!email || !password) {
+                showToast('Preencha todos os campos.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnLogin');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Entrando...';
+
+            db.ref('empresas').orderByChild('email').equalTo(email).once('value', (snap) => {
+                if (snap.exists()) {
+                    let found = false;
+                    snap.forEach((child) => {
+                        const empresa = child.val();
+                        if (empresa.senha === password) {
+                            found = true;
+                            localStorage.setItem('empresa_logada', JSON.stringify({
+                                id: child.key,
+                                ...empresa
+                            }));
+                            showToast('✅ Login realizado com sucesso!', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'empresas-dashboard.html';
+                            }, 1000);
+                        }
+                    });
+                    if (!found) {
+                        showToast('❌ Senha incorreta.', 'error');
+                    }
+                } else {
+                    showToast('❌ Empresa não encontrada. Cadastre-se primeiro.', 'error');
+                }
+                btn.disabled = false;
+                btn.innerHTML = '🔑 Entrar';
+            }).catch(() => {
+                showToast('Erro ao fazer login.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '🔑 Entrar';
+            });
+        });
+
+        document.getElementById('btnEsqueciSenha').addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('🔐 Recuperação de senha em breve.', 'success');
+        });
+    </script>
+
+</body>
+</html>

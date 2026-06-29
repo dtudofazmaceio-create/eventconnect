@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowStageEventos - Cadastro Empresas</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #b85c4a;
+            --primary-dark: #9e4a3a;
+            --primary-light: #f5e8e4;
+            --secondary: #2d2a2a;
+            --bg-soft: #fdf8f6;
+            --white: #ffffff;
+            --gray: #6b6b6b;
+            --border: #e0d6d2;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+            --font-body: 'Inter', sans-serif;
+            --font-title: 'Playfair Display', serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-soft);
+            color: var(--secondary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .header-emp {
+            background: var(--secondary);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-emp .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-emp {
+            font-family: var(--font-title);
+            font-size: 1.6rem;
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-emp span {
+            color: var(--primary);
+        }
+
+        .nav-emp {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-emp a {
+            color: #bbb;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-emp a:hover {
+            color: var(--white);
+        }
+
+        .nav-emp a.active {
+            color: var(--white);
+            border-bottom-color: var(--primary);
+        }
+
+        .btn-emp {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            background: var(--white);
+            color: var(--secondary);
+        }
+
+        .btn-emp-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-emp-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 92, 74, 0.3);
+        }
+
+        .btn-emp-outline {
+            background: transparent;
+            color: var(--white);
+            border: 1.5px solid #555;
+        }
+
+        .btn-emp-outline:hover {
+            border-color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-emp-sm {
+            padding: 6px 18px;
+            font-size: 0.85rem;
+        }
+
+        .hero-cadastro {
+            padding: 60px 0 80px;
+            background: linear-gradient(160deg, var(--secondary) 0%, #1a1818 100%);
+            color: var(--white);
+            flex: 1;
+        }
+
+        .hero-cadastro .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hero-cadastro h1 {
+            font-family: var(--font-title);
+            font-size: 2.8rem;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .hero-cadastro h1 span {
+            color: var(--primary);
+        }
+
+        .hero-cadastro p {
+            font-size: 1.05rem;
+            color: #aaa;
+            margin-bottom: 32px;
+        }
+
+        .cadastro-box {
+            background: var(--white);
+            padding: 40px 44px;
+            border-radius: var(--radius);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+            max-width: 520px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .cadastro-box h2 {
+            font-family: var(--font-title);
+            color: var(--secondary);
+            font-size: 1.6rem;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .cadastro-box .cadastro-sub {
+            text-align: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .cadastro-box .form-group {
+            margin-bottom: 16px;
+        }
+
+        .cadastro-box .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--secondary);
+        }
+
+        .cadastro-box .form-group input,
+        .cadastro-box .form-group select,
+        .cadastro-box .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--bg-soft);
+        }
+
+        .cadastro-box .form-group input:focus,
+        .cadastro-box .form-group select:focus,
+        .cadastro-box .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(184, 92, 74, 0.08);
+            background: var(--white);
+        }
+
+        .cadastro-box .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .cadastro-box .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .cadastro-box .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+        .cadastro-box .login-links {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.85rem;
+        }
+
+        .cadastro-box .login-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .cadastro-box .login-links a:hover {
+            text-decoration: underline;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--secondary);
+            color: var(--white);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: var(--transition);
+            pointer-events: none;
+            z-index: 999;
+            font-size: 0.95rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success {
+            background: #2d7d46;
+        }
+
+        .toast-error {
+            background: #b85c4a;
+        }
+
+        .footer-emp {
+            background: var(--secondary);
+            color: #888;
+            padding: 24px 0;
+            margin-top: auto;
+            border-top: 1px solid #333;
+        }
+
+        .footer-emp .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-emp a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer-emp a:hover {
+            color: var(--white);
+        }
+
+        .footer-emp .links {
+            display: flex;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .hero-cadastro .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .cadastro-box {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-emp .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-emp {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .hero-cadastro h1 {
+                font-size: 2rem;
+            }
+
+            .cadastro-box {
+                padding: 28px 20px;
+            }
+
+            .cadastro-box .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-emp .container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-emp .links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-emp">
+        <div class="container">
+            <a href="index.html" class="logo-emp">
+                💒 FlowStage<span>Eventos</span>
+            </a>
+            <nav class="nav-emp">
+                <a href="index.html">Início</a>
+                <a href="empresas.html">Acesso Empresas</a>
+                <a href="empresas-dashboard.html">Dashboard</a>
+                <a href="#" class="active">Cadastro</a>
+                <a href="index.html#contato" class="btn-emp btn-emp-outline btn-emp-sm">Fale conosco</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero-cadastro">
+        <div class="container">
+            <div>
+                <h1>Cadastre sua empresa e <span>comece a crescer</span></h1>
+                <p>Junte-se aos melhores fornecedores de casamentos e receba solicitações de noivos todos os dias.</p>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <span style="background: rgba(255,255,255,0.06); padding: 8px 16px; border-radius: 40px; font-size: 0.85rem;">✅ Grátis para começar</span>
+                    <span style="background: rgba(255,255,255,0.06); padding: 8px 16px; border-radius: 40px; font-size: 0.85rem;">📱 App exclusivo</span>
+                    <span style="background: rgba(255,255,255,0.06); padding: 8px 16px; border-radius: 40px; font-size: 0.85rem;">📊 Estatísticas</span>
+                </div>
+            </div>
+            <div>
+                <div class="cadastro-box">
+                    <h2>Cadastre-se grátis</h2>
+                    <p class="cadastro-sub">Preencha os dados e comece a receber clientes</p>
+
+                    <form id="cadastroForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nomeEmpresa">Nome da empresa</label>
+                                <input type="text" id="nomeEmpresa" placeholder="Sua empresa" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="categoria">Categoria</label>
+                                <select id="categoria" required>
+                                    <option value="">Selecione</option>
+                                    <option value="Espaço para casamento">Espaço para casamento</option>
+                                    <option value="Buffet / Gastronomia">Buffet / Gastronomia</option>
+                                    <option value="Fotografia">Fotografia</option>
+                                    <option value="Filmagem">Filmagem</option>
+                                    <option value="Florista">Florista</option>
+                                    <option value="Música / DJ">Música / DJ</option>
+                                    <option value="Cerimonialista">Cerimonialista</option>
+                                    <option value="Decoração">Decoração</option>
+                                    <option value="Vestido de noiva">Vestido de noiva</option>
+                                    <option value="Alianças">Alianças</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="emailEmpresa">E-mail</label>
+                            <input type="email" id="emailEmpresa" placeholder="contato@empresa.com" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="telefoneEmpresa">Telefone</label>
+                            <input type="tel" id="telefoneEmpresa" placeholder="(11) 99999-9999" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="localEmpresa">Cidade / Estado</label>
+                            <input type="text" id="localEmpresa" placeholder="São Paulo, SP" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="descricaoEmpresa">Descrição do negócio</label>
+                            <textarea id="descricaoEmpresa" placeholder="Conte sobre sua empresa..." required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="senhaEmpresa">Senha</label>
+                                <input type="password" id="senhaEmpresa" placeholder="Mínimo 6 caracteres" required minlength="6" />
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmarSenha">Confirmar senha</label>
+                                <input type="password" id="confirmarSenha" placeholder="Repita a senha" required minlength="6" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-emp-primary" id="btnCadastrar">
+                            📝 Cadastrar empresa
+                        </button>
+                    </form>
+
+                    <div class="login-links">
+                        Já tem cadastro? <a href="empresas.html">Faça login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-emp">
+        <div class="container">
+            <span>&copy; 2026 FlowStageEventos. Todos os direitos reservados.</span>
+            <div class="links">
+                <a href="#">Termos de uso</a>
+                <a href="#">Privacidade</a>
+                <a href="#">Cookies</a>
+                <a href="#">Suporte</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "seu-projeto.firebaseapp.com",
+            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function showToast(message, type = '') {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.className = 'toast';
+            if (type) el.classList.add('toast-' + type);
+            el.classList.add('show');
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        document.getElementById('cadastroForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const nome = document.getElementById('nomeEmpresa').value.trim();
+            const categoria = document.getElementById('categoria').value;
+            const email = document.getElementById('emailEmpresa').value.trim();
+            const telefone = document.getElementById('telefoneEmpresa').value.trim();
+            const local = document.getElementById('localEmpresa').value.trim();
+            const descricao = document.getElementById('descricaoEmpresa').value.trim();
+            const senha = document.getElementById('senhaEmpresa').value;
+            const confirmar = document.getElementById('confirmarSenha').value;
+
+            if (!nome || !categoria || !email || !telefone || !local || !descricao || !senha || !confirmar) {
+                showToast('Preencha todos os campos.', 'error');
+                return;
+            }
+
+            if (senha.length < 6) {
+                showToast('A senha deve ter no mínimo 6 caracteres.', 'error');
+                return;
+            }
+
+            if (senha !== confirmar) {
+                showToast('As senhas não coincidem.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnCadastrar');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Cadastrando...';
+
+            db.ref('empresas').orderByChild('email').equalTo(email).once('value', (snap) => {
+                if (snap.exists()) {
+                    showToast('❌ Este e-mail já está cadastrado.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '📝 Cadastrar empresa';
+                    return;
+                }
+
+                db.ref('empresas').push({
+                    nome,
+                    categoria,
+                    email,
+                    telefone,
+                    local,
+                    descricao,
+                    senha,
+                    status: 'pendente',
+                    dataCadastro: Date.now(),
+                    visualizacoes: 0,
+                    leads: 0
+                }).then(() => {
+                    showToast('✅ Empresa cadastrada com sucesso!', 'success');
+                    btn.disabled = false;
+                    btn.innerHTML = '📝 Cadastrar empresa';
+                    document.getElementById('cadastroForm').reset();
+                    setTimeout(() => {
+                        window.location.href = 'empresas.html';
+                    }, 1500);
+                }).catch((err) => {
+                    console.error(err);
+                    showToast('Erro ao cadastrar empresa.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '📝 Cadastrar empresa';
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
